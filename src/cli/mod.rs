@@ -40,7 +40,6 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
         }
     }
     let scan_id = Uuid::new_v4().to_string();
-    println!("{:?}", all_findings);
     let mut state = state.write().await;
     state.results.insert(scan_id.clone(), all_findings);
     

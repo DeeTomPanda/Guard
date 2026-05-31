@@ -38,8 +38,9 @@ async fn main() {
                 std::time::Duration::from_millis(500)
             ).await;
         
+            // trigger the browser to open the results page 
             open::that(format!(
-                "http://localhost:3000/results/{}", 
+                "http://localhost:3000/#/app/{}", 
                 scan_id
             )).unwrap();
 
