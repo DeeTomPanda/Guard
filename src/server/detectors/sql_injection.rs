@@ -1,8 +1,9 @@
 use regex::Regex;
 use crate::Findings;
-use crate::detectors::Detector;
+use crate::server::model::VulnerabilityType;
+use super::Detector;
 
-struct SQLInjection;
+pub struct SQLInjection;
 
 impl Detector for SQLInjection{
     

@@ -1,9 +1,9 @@
 use regex::Regex;
 use crate::Findings;
-use crate::VulnerabilityType;
-use crate::detectors::Detector;
+use crate::server::model::VulnerabilityType;
+use super::Detector;
 
-struct HardCodedSecret;
+pub struct HardCodedSecret;
 
 impl Detector for HardCodedSecret{
     fn detect(&self, lines:&str, file_path:&str)->Vec<Findings>{

@@ -1,13 +1,14 @@
 use regex::Regex;
-use crate::Findings;
-use crate::detectors::Detector;
+use crate::{Findings};
+use crate::server::model::VulnerabilityType;
+use super::Detector;
 
 
-struct Eval;
+pub struct Eval;
 
 // checks presence of any eval() in the codebase
 impl Detector for Eval{
-    fn detect(&self, lines:&str, file_path:&str)->Vec<Findidings>{
+    fn detect(&self, lines:&str, file_path:&str)->Vec<Findings>{
         let mut findings:Vec<Findings> = Vec::new();
         let pattern = Regex::new(r"\beval\s*\(").unwrap();
         
