@@ -1,5 +1,8 @@
 use std::fmt::Debug;
 use std::cmp::PartialEq;
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize)]
 pub enum VulnerabilityType{
     Eval,
     HardcodedSecret,
@@ -32,7 +35,7 @@ impl PartialEq for VulnerabilityType {
     }
 } 
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Serialize, Deserialize)]
 pub struct Findings{
     pub vuln_type:VulnerabilityType,
     pub lines:String,

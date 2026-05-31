@@ -35,6 +35,7 @@ impl Detector for SQLInjection{
 // tests for SQLInjection detector
 
 mod test{
+    
     use super::*;
 
     #[test]

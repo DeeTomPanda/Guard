@@ -1,24 +1,14 @@
-use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use clap::Parser;
 
 use crate::server::model::Findings;
+use crate::state::AppState;
 
+mod state;
 mod server;
 mod cli;
 
-pub struct AppState {
-    pub results: HashMap<String, Vec<Findings>>,
-}
-
-impl AppState {
-    pub fn new() -> Self {
-        Self {
-            results: HashMap::new(),
-        }
-    }
-}
 
 #[derive(Parser)]
 enum Command {
@@ -52,6 +42,8 @@ async fn main() {
                 "http://localhost:3000/results/{}", 
                 scan_id
             )).unwrap();
+
+          tokio::signal::ctrl_c().await.unwrap();
         }
     }
 }
