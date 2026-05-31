@@ -31,3 +31,39 @@ impl Detector for SQLInjection{
         findings
     }
 }
+
+// tests for SQLInjection detector
+
+mod test{
+    use super::*;
+
+    #[test]
+    fn test_sql_injection_positive(){
+        let code = r#"
+        let user_input = "some input";
+        let query = "SELECT * FROM users WHERE name = '" + user_input + "'";
+        let anotherQuery = `SELECT * FROM users WHERE name = '${user_input}'`;
+        "#;
+        let detector = SQLInjection;
+        let findings = detector.detect(code, "test.js");
+        assert_eq!(findings.len(), 2);
+        assert_eq!(findings[0].vuln_type, VulnerabilityType::SQLInjection);
+        assert_eq!(findings[0].lines, "3");
+        assert_eq!(findings[0].file_path, "test.js");
+        assert_eq!(findings[0].snippet, "let query = \"SELECT * FROM users WHERE name = '\" + user_input + \"'\";");
+        assert_eq!(findings[1].vuln_type, VulnerabilityType::SQLInjection);
+        assert_eq!(findings[1].lines, "4");
+        assert_eq!(findings[1].snippet,"let anotherQuery = `SELECT * FROM users WHERE name = '${user_input}'`;");
+    }
+
+    #[test]
+    fn test_sql_injection_negative(){
+        let code = r#"
+        let user_input = "some input";
+        let query = "SELECT * FROM users WHERE name = ?";
+        "#;
+        let detector = SQLInjection;
+        let findings = detector.detect(code, "test.js");
+        assert_eq!(findings.len(), 0);
+    }
+}

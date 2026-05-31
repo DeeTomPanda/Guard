@@ -22,7 +22,57 @@ impl Detector for Eval{
                 })
             }
         }
-
+        
         findings
+    }
+}
+
+// tests for eval detector
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn test_detects_eval_with_variable() {
+        let code =r#"
+        let user_input = "some input";
+        eval(user_input);
+        "#;
+        
+        let detector=Eval{};
+        let findings = detector.detect(code, "test.js");
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].vuln_type, VulnerabilityType::Eval);
+        assert_eq!(findings[0].lines, "3");
+        assert_eq!(findings[0].file_path, "test.js");
+        assert_eq!(findings[0].snippet, "eval(user_input);");
+    }
+    
+    #[test]
+    fn test_no_eval() {
+        let code = r#"
+        console.log("hello");
+        const x = 1 + 1;
+    "#;
+        let detector = Eval;
+        let findings = detector.detect(code, "test.js");
+        assert_eq!(findings.len(), 0);
+    }
+    
+    #[test]
+    fn test_multiple_evals() {
+        let code = r#"
+        eval(input1);
+        eval(input2);
+    "#;
+        let detector = Eval;
+        let findings = detector.detect(code, "test.js"  );
+        assert_eq!(findings.len(), 2);
+        assert_eq!(findings[0].vuln_type, VulnerabilityType::Eval);
+        assert_eq!(findings[0].lines, "2");
+        assert_eq!(findings[0].snippet, "eval(input1);");
+        assert_eq!(findings[1].lines, "3");
+        assert_eq!(findings[1].snippet, "eval(input2);");
+        assert_eq!(findings[1].vuln_type, VulnerabilityType::Eval);
     }
 }
