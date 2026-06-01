@@ -17,9 +17,10 @@ impl Detector for HardCodedSecret{
                 if regex.is_match(line){
                     findings.push(Findings{
                         vuln_type: VulnerabilityType::HardcodedSecret,
-                        lines: (i+1).to_string(),
+                        line_no: (i+1).to_string(),
                         file_path: String::from(file_path),
-                        snippet: line.trim().to_string()
+                        snippet: line.trim().to_string(),
+                        severity: "High".to_string()
                     });
                     break;
                 }
@@ -48,17 +49,17 @@ mod tests{
         let findings = detector.detect(code, "test.js");
         assert_eq!(findings.len(), 3);
         assert_eq!(findings[0].vuln_type, VulnerabilityType::HardcodedSecret);
-        assert_eq!(findings[0].lines, "2");
+        assert_eq!(findings[0].line_no, "2");
         assert_eq!(findings[0].snippet, "const password = \"mysecretpassword\";");
         assert_eq!(findings[0].file_path, "test.js");
         assert_eq!(findings[1].vuln_type, VulnerabilityType::HardcodedSecret);
-        assert_eq!(findings[1].lines,"3");
+        assert_eq!(findings[1].line_no,"3");
         assert_eq!(findings[1].snippet, "const apiKey = \"12345-abcde-67890-fghij\";");
         assert_eq!(findings[1].file_path, "test.js");
         assert_eq!(findings[2].vuln_type, VulnerabilityType::HardcodedSecret);
         assert_eq!(findings[2].snippet, "const token = \"token12345\";");
         assert_eq!(findings[2].file_path, "test.js");
-        assert_eq!(findings[2].lines,"4");
+        assert_eq!(findings[2].line_no,"4");
     }
 
     #[test]

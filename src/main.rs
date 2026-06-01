@@ -40,7 +40,7 @@ async fn main() {
         
             // trigger the browser to open the results page 
             open::that(format!(
-                "http://localhost:3000/#/app/{}", 
+                "http://localhost:3000/#/results/{}", 
                 scan_id
             )).unwrap();
 

@@ -38,7 +38,8 @@ impl PartialEq for VulnerabilityType {
 #[derive(Debug,PartialEq,Serialize, Deserialize)]
 pub struct Findings{
     pub vuln_type:VulnerabilityType,
-    pub lines:String,
+    pub line_no:String,
     pub file_path:String,
-    pub snippet:String
+    pub snippet:String,
+    pub severity:String
 }

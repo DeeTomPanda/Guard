@@ -20,9 +20,10 @@ impl Detector for SQLInjection{
                 if regex.is_match(line){
                     findings.push(Findings{
                         vuln_type: VulnerabilityType::SQLInjection,
-                        lines: (i+1).to_string(),
+                        line_no: (i+1).to_string(),
                         file_path: String::from(file_path),
-                        snippet: line.trim().to_string()
+                        snippet: line.trim().to_string(),
+                        severity:"Critical".to_string()
                     });
                     break;
                 }
@@ -35,7 +36,7 @@ impl Detector for SQLInjection{
 // tests for SQLInjection detector
 
 mod test{
-    
+
     use super::*;
 
     #[test]
@@ -49,11 +50,11 @@ mod test{
         let findings = detector.detect(code, "test.js");
         assert_eq!(findings.len(), 2);
         assert_eq!(findings[0].vuln_type, VulnerabilityType::SQLInjection);
-        assert_eq!(findings[0].lines, "3");
+        assert_eq!(findings[0].line_no, "3");
         assert_eq!(findings[0].file_path, "test.js");
         assert_eq!(findings[0].snippet, "let query = \"SELECT * FROM users WHERE name = '\" + user_input + \"'\";");
         assert_eq!(findings[1].vuln_type, VulnerabilityType::SQLInjection);
-        assert_eq!(findings[1].lines, "4");
+        assert_eq!(findings[1].line_no  , "4");
         assert_eq!(findings[1].snippet,"let anotherQuery = `SELECT * FROM users WHERE name = '${user_input}'`;");
     }
 

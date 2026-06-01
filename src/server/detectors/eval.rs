@@ -16,9 +16,10 @@ impl Detector for Eval{
             if pattern.is_match(line){
                 findings.push(Findings{
                     vuln_type: VulnerabilityType::Eval,
-                    lines: (i+1).to_string(),
+                    line_no: (i+1).to_string(),
                     file_path: String::from(file_path),
-                    snippet: line.trim().to_string()
+                    snippet: line.trim().to_string(),
+                    severity: "High".to_string()
                 })
             }
         }
@@ -43,7 +44,7 @@ mod tests {
         let findings = detector.detect(code, "test.js");
         assert_eq!(findings.len(), 1);
         assert_eq!(findings[0].vuln_type, VulnerabilityType::Eval);
-        assert_eq!(findings[0].lines, "3");
+        assert_eq!(findings[0].line_no, "3");
         assert_eq!(findings[0].file_path, "test.js");
         assert_eq!(findings[0].snippet, "eval(user_input);");
     }
@@ -69,9 +70,9 @@ mod tests {
         let findings = detector.detect(code, "test.js"  );
         assert_eq!(findings.len(), 2);
         assert_eq!(findings[0].vuln_type, VulnerabilityType::Eval);
-        assert_eq!(findings[0].lines, "2");
+        assert_eq!(findings[0].line_no, "2");
         assert_eq!(findings[0].snippet, "eval(input1);");
-        assert_eq!(findings[1].lines, "3");
+        assert_eq!(findings[1].line_no, "3");
         assert_eq!(findings[1].snippet, "eval(input2);");
         assert_eq!(findings[1].vuln_type, VulnerabilityType::Eval);
     }
