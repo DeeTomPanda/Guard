@@ -21,11 +21,12 @@ A static analysis tool that scans JavaScript codebases for common security vulne
 
 ```bash
 # Clone
-git clone https://github.com/you/guard
+git clone https://github.com/DeeTomPanda/Guard/
 cd guard
+make
 ```
 
-then
+then, head over to the rust build directory and
 
 ```bash
 # Scan a project
