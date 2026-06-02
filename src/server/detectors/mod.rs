@@ -1,10 +1,8 @@
-mod eval;
-mod hard_coded;
-mod sql_injection;
+mod javascript;
 
-pub use eval::Eval;
-pub use hard_coded::HardCodedSecret;
-pub use sql_injection::SQLInjection;
+pub use javascript::eval::JavaSciptEval;
+pub use javascript::hard_coded::JavaSciptHardCodedSecret;
+pub use javascript::sql_injection::JavaSciptSQLInjection;
 
 
 pub trait Detector{

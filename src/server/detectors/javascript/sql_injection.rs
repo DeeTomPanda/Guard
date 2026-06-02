@@ -1,11 +1,11 @@
 use regex::Regex;
 use crate::Findings;
 use crate::server::model::{Severity, VulnerabilityType};
-use super::Detector;
+use crate::server::detectors::Detector;
 
-pub struct SQLInjection;
+pub struct JavaSciptSQLInjection;
 
-impl Detector for SQLInjection{
+impl Detector for JavaSciptSQLInjection{
     
     fn detect(&self, lines:&str, file_path:&str)->Vec<Findings>{
         let patterns = [
@@ -33,9 +33,9 @@ impl Detector for SQLInjection{
     }
 }
 
-// tests for SQLInjection detector
+// tests for JavaSciptSQLInjection detector
 
-mod test{
+mod tests{
 
     use super::*;
 
@@ -46,7 +46,7 @@ mod test{
         let query = "SELECT * FROM users WHERE name = '" + user_input + "'";
         let anotherQuery = `SELECT * FROM users WHERE name = '${user_input}'`;
         "#;
-        let detector = SQLInjection;
+        let detector = JavaSciptSQLInjection;
         let findings = detector.detect(code, "test.js");
         assert_eq!(findings.len(), 2);
         assert_eq!(findings[0].vuln_type, VulnerabilityType::SQLInjection);
@@ -66,7 +66,7 @@ mod test{
         let user_input = "some input";
         let query = "SELECT * FROM users WHERE name = ?";
         "#;
-        let detector = SQLInjection;
+        let detector = JavaSciptSQLInjection;
         let findings = detector.detect(code, "test.js");
         assert_eq!(findings.len(), 0);
     }

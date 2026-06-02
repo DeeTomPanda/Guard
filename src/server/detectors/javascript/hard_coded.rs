@@ -1,11 +1,11 @@
 use regex::Regex;
 use crate::Findings;
 use crate::server::model::{VulnerabilityType,Severity};
-use super::Detector;
+use crate::server::detectors::Detector;
 
-pub struct HardCodedSecret;
+pub struct JavaSciptHardCodedSecret;
 
-impl Detector for HardCodedSecret{
+impl Detector for JavaSciptHardCodedSecret{
     fn detect(&self, lines:&str, file_path:&str)->Vec<Findings>{
         let patterns = [
         r#"(?i)\b(password|secret|api[_-]?key|token|access[_-]?key|private[_-]?key)\b\s*[:=]\s*['\"`][^'\"`]{3,}['\"`]"#];
@@ -45,7 +45,7 @@ mod tests{
         const token = "token12345";
         "#;
         
-        let detector=HardCodedSecret;
+        let detector=JavaSciptHardCodedSecret;
         let findings = detector.detect(code, "test.js");
         assert_eq!(findings.len(), 3);
         assert_eq!(findings[0].vuln_type, VulnerabilityType::HardcodedSecret);
@@ -71,7 +71,7 @@ mod tests{
         const config = {
             username: "admin",
         }"#; 
-        let detector=HardCodedSecret;
+        let detector=JavaSciptHardCodedSecret;
         let findings = detector.detect(code, "test.js");
         assert_eq!(findings.len(), 0);
     }
@@ -83,7 +83,7 @@ mod tests{
         const apiKey = fetchApiKey();
         const token = generateToken();
         "#;
-        let detector=HardCodedSecret;
+        let detector=JavaSciptHardCodedSecret;
         let findings = detector.detect(code, "test.js");
         assert_eq!(findings.len(), 0);
     }

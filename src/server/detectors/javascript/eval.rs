@@ -1,13 +1,13 @@
 use regex::Regex;
 use crate::{Findings};
 use crate::server::model::{VulnerabilityType,Severity};
-use super::Detector;
+use crate::server::detectors::Detector;
 
 
-pub struct Eval;
+pub struct JavaSciptEval;
 
 // checks presence of any eval() in the codebase
-impl Detector for Eval{
+impl Detector for JavaSciptEval{
     fn detect(&self, lines:&str, file_path:&str)->Vec<Findings>{
         let mut findings:Vec<Findings> = Vec::new();
         let pattern = Regex::new(r"\beval\s*\(").unwrap();
@@ -40,7 +40,7 @@ mod tests {
         eval(user_input);
         "#;
         
-        let detector=Eval{};
+        let detector=JavaSciptEval{};
         let findings = detector.detect(code, "test.js");
         assert_eq!(findings.len(), 1);
         assert_eq!(findings[0].vuln_type, VulnerabilityType::Eval);
@@ -56,7 +56,7 @@ mod tests {
         console.log("hello");
         const x = 1 + 1;
     "#;
-        let detector = Eval;
+        let detector = JavaSciptEval;
         let findings = detector.detect(code, "test.js");
         assert_eq!(findings.len(), 0);
     }
@@ -67,7 +67,7 @@ mod tests {
         eval(input1);
         eval(input2);
     "#;
-        let detector = Eval;
+        let detector = JavaSciptEval;
         let findings = detector.detect(code, "test.js"  );
         assert_eq!(findings.len(), 2);
         assert_eq!(findings[0].vuln_type, VulnerabilityType::Eval);
