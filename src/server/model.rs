@@ -8,6 +8,22 @@ pub enum VulnerabilityType{
     HardcodedSecret,
     SQLInjection
 }
+#[derive(Serialize, Deserialize,PartialEq)]
+pub enum Severity{
+    Critical,
+    High,
+    Medium,
+    Low
+}
+
+pub fn severity_order(s: &Severity) -> u8 {
+    match s {
+        Severity::Critical => 0,
+        Severity::High => 1,
+        Severity::Medium => 2,
+        Severity::Low => 3,
+    }
+}
 
 // custom trait implementations to make life easier !
 impl Debug for VulnerabilityType{
@@ -35,11 +51,29 @@ impl PartialEq for VulnerabilityType {
     }
 } 
 
+impl Debug for Severity{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let severity_str = match self{
+            Severity::Critical => "Critical",
+            Severity::High => "High",
+            Severity::Medium => "Medium",
+            Severity::Low => "Low"
+        };
+        write!(f, "{}", severity_str)
+    }
+}
+
 #[derive(Debug,PartialEq,Serialize, Deserialize)]
 pub struct Findings{
     pub vuln_type:VulnerabilityType,
     pub line_no:String,
     pub file_path:String,
     pub snippet:String,
-    pub severity:String
+    pub severity:Severity
+}
+
+#[derive(Debug,PartialEq,Serialize, Deserialize)]
+pub struct FinalFindings{
+    pub file_name:String,
+    pub findings:Vec<Findings>
 }

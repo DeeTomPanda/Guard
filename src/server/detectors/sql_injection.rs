@@ -1,6 +1,6 @@
 use regex::Regex;
 use crate::Findings;
-use crate::server::model::VulnerabilityType;
+use crate::server::model::{Severity, VulnerabilityType};
 use super::Detector;
 
 pub struct SQLInjection;
@@ -23,7 +23,7 @@ impl Detector for SQLInjection{
                         line_no: (i+1).to_string(),
                         file_path: String::from(file_path),
                         snippet: line.trim().to_string(),
-                        severity:"Critical".to_string()
+                        severity:Severity::Critical
                     });
                     break;
                 }
@@ -50,12 +50,14 @@ mod test{
         let findings = detector.detect(code, "test.js");
         assert_eq!(findings.len(), 2);
         assert_eq!(findings[0].vuln_type, VulnerabilityType::SQLInjection);
+        assert_eq!(findings[0].severity, Severity::Critical);
         assert_eq!(findings[0].line_no, "3");
         assert_eq!(findings[0].file_path, "test.js");
         assert_eq!(findings[0].snippet, "let query = \"SELECT * FROM users WHERE name = '\" + user_input + \"'\";");
         assert_eq!(findings[1].vuln_type, VulnerabilityType::SQLInjection);
         assert_eq!(findings[1].line_no  , "4");
         assert_eq!(findings[1].snippet,"let anotherQuery = `SELECT * FROM users WHERE name = '${user_input}'`;");
+        assert_eq!(findings[1].severity, Severity::Critical);
     }
 
     #[test]

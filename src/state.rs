@@ -1,9 +1,12 @@
 use std::collections::HashMap;
-use crate::server::model::Findings;
+use crate::server::model::{FinalFindings};
 
 pub struct AppState {
-    pub results: HashMap<String, Vec<Findings>>,
+    // HashMap<scan_id, HashMap<file_name, Vec<Findings>>>
+    pub results: HashMap<String, Vec<FinalFindings>>,
 }
+
+
 
 impl AppState {
     pub fn new() -> Self {

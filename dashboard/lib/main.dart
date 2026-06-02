@@ -47,6 +47,22 @@ class ResultsPage extends StatefulWidget {
   State<ResultsPage> createState() => _ResultsPageState();
 }
 
+class FinalFinding {
+  final String fileName;
+  final List<Finding> findings;
+
+  FinalFinding({required this.fileName, required this.findings});
+
+  factory FinalFinding.fromJson(Map<String, dynamic> json) {
+    return FinalFinding(
+      fileName: json['file_name'],
+      findings: (json['findings'] as List)
+          .map((f) => Finding.fromJson(f))
+          .toList(),
+    );
+  }
+}
+
 class Finding {
   final String vulnType;
   final String lineNo;
@@ -71,7 +87,7 @@ class Finding {
 }
 
 class _ResultsPageState extends State<ResultsPage> {
-  List<Finding> findings = [];
+  List<FinalFinding> findings = [];
   bool isLoading = true;
   String scanId = '';
   Timer? pollingTimer;
@@ -103,11 +119,12 @@ class _ResultsPageState extends State<ResultsPage> {
     );
 
     if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+
       setState(() {
-        findings = (jsonDecode(response.body) as List)
-            .map((f) => Finding.fromJson(f))
-            .toList();
+        findings = data.map((e) => FinalFinding.fromJson(e)).toList();
         isLoading = false;
+        ;
       });
       pollingTimer?.cancel(); // stop polling
     }
@@ -140,96 +157,54 @@ class _ResultsPageState extends State<ResultsPage> {
   }
 
   Widget _buildResults() {
-    final critical = findings.where((f) => f.severity == 'Critical').toList();
-    final high = findings.where((f) => f.severity == 'High').toList();
-    final medium = findings.where((f) => f.severity == 'Medium').toList();
-    final low = findings.where((f) => f.severity == 'Low').toList();
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSummary(critical, high, medium, low),
-          const SizedBox(height: 24),
-          if (critical.isNotEmpty)
-            _buildSection('Critical', critical, Colors.red),
-          if (high.isNotEmpty) _buildSection('High', high, Colors.orange),
-          if (medium.isNotEmpty) _buildSection('Medium', medium, Colors.yellow),
-          if (low.isNotEmpty) _buildSection('Low', low, Colors.green),
-        ],
+        children: [...findings.map((f) => _buildFileSection(f))],
       ),
     );
   }
 
-  Widget _buildSummary(
-    List<Finding> critical,
-    List<Finding> high,
-    List<Finding> medium,
-    List<Finding> low,
-  ) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildSummaryCard('Critical', critical.length, Colors.red),
-        ),
-        const SizedBox(width: 8),
-        Expanded(child: _buildSummaryCard('High', high.length, Colors.orange)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildSummaryCard('Medium', medium.length, Colors.yellow),
-        ),
-        const SizedBox(width: 8),
-        Expanded(child: _buildSummaryCard('Low', low.length, Colors.green)),
-      ],
-    );
-  }
-
-  Widget _buildSummaryCard(String label, int count, Color color) {
+  Widget _buildFileSection(FinalFinding fileResult) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        border: Border.all(color: color),
-        borderRadius: BorderRadius.circular(8),
-      ),
+      margin: const EdgeInsets.only(bottom: 24),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            count.toString(),
-            style: TextStyle(
-              color: color,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+          // filename header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2E2E3E),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              fileResult.fileName,
+              style: const TextStyle(
+                color: Colors.white,
+                fontFamily: 'monospace',
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
-          Text(label, style: TextStyle(color: color)),
+          const SizedBox(height: 8),
+          // findings under this file
+          ...fileResult.findings.map((f) => _buildFindingCard(f)),
         ],
       ),
     );
   }
 
-  Widget _buildSection(String title, List<Finding> findings, Color color) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            color: color,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        ...findings.map((f) => _buildFindingCard(f, color)),
-        const SizedBox(height: 24),
-      ],
-    );
-  }
-
-  Widget _buildFindingCard(Finding finding, Color color) {
+  Widget _buildFindingCard(Finding finding) {
+    final color = switch (finding.severity) {
+      'Critical' => Colors.red,
+      'High' => Colors.orange,
+      'Medium' => Colors.yellow,
+      'Low' => Colors.green,
+      _ => Colors.grey,
+    };
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(16),

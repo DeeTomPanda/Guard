@@ -1,11 +1,12 @@
 
+use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use walkdir::WalkDir;
 use uuid::Uuid;
 
 use crate::AppState;
-use crate::server::model::Findings;
+use crate::server::model::{FinalFindings,Findings,severity_order};
 use crate::server::service::OWASPScanner;
 
 
@@ -13,7 +14,7 @@ use crate::server::service::OWASPScanner;
 pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
     
     let owasp_scanner = OWASPScanner::new();
-    let mut all_findings: Vec<Findings> = Vec::new();
+    let mut all_findings: Vec<FinalFindings> = Vec::new();
     
     for entry in WalkDir::new(path) {
         let entry = entry.unwrap();
@@ -30,8 +31,15 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
             match std::fs::read_to_string(path){
                 Ok(content)=>{
                     // run the scan for each file and collect findings
-                    let findings = owasp_scanner.scan(&content, path.to_string_lossy().as_ref());
-                    all_findings.extend(findings);  
+                    let mut findings = owasp_scanner.scan(&content, path.to_string_lossy().as_ref());
+                    if findings.is_empty(){
+                        continue;
+                    }
+                    findings.sort_by_key(|f| severity_order(&f.severity)); 
+                    all_findings.push(FinalFindings {
+                        file_name: path.to_string_lossy().to_string(),
+                        findings
+                    });
                 },
                 Err(e)=>{
                     eprintln!("Error reading file {}: {}", path.display(), e);
