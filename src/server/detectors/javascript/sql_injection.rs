@@ -5,16 +5,23 @@ use crate::server::detectors::Detector;
 
 pub struct JavaSciptSQLInjection;
 
+
+impl JavaSciptSQLInjection{
+    pub fn initialize() -> Self {
+        Self{}
+    }
+}
+
 impl Detector for JavaSciptSQLInjection{
     
-    fn detect(&self, lines:&str, file_path:&str)->Vec<Findings>{
+    fn detect(&self, code:&str, file_path:&str)->Vec<Findings>{
         let patterns = [
         r"(?i)(select|insert|update|delete)\s+.*\+",
         r"`.*\$\{.*\}.*`",
         r"(?i)\bsql\s*=\s*.*(\+|\$\{)",
         ];
         let mut findings:Vec<Findings> = Vec::new();
-        for (i,line) in lines.lines().enumerate(){
+        for (i,line) in code.lines().enumerate(){
             for pattern in &patterns{
                 let regex = Regex::new(pattern).unwrap();
                 if regex.is_match(line){

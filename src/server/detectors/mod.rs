@@ -6,6 +6,6 @@ pub use javascript::sql_injection::JavaSciptSQLInjection;
 
 
 pub trait Detector{
-    fn detect(&self, lines:&str, file_path:&str) -> Vec<crate::server::model::Findings>;
+    fn detect(&self, code:&str, file_path:&str) -> Vec<crate::server::model::Findings>;
 }
 

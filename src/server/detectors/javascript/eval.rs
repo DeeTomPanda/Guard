@@ -6,13 +6,20 @@ use crate::server::detectors::Detector;
 
 pub struct JavaSciptEval;
 
+impl JavaSciptEval{
+   pub fn initialize() -> Self {
+        Self{}
+    }
+}
+
 // checks presence of any eval() in the codebase
 impl Detector for JavaSciptEval{
-    fn detect(&self, lines:&str, file_path:&str)->Vec<Findings>{
+    
+    fn detect(&self, code:&str, file_path:&str)->Vec<Findings>{
         let mut findings:Vec<Findings> = Vec::new();
         let pattern = Regex::new(r"\beval\s*\(").unwrap();
         
-        for (i,line) in lines.lines().enumerate(){
+        for (i,line) in code.lines().enumerate(){
             if pattern.is_match(line){
                 findings.push(Findings{
                     vuln_type: VulnerabilityType::Eval,

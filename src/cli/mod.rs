@@ -1,12 +1,10 @@
-
-use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use walkdir::WalkDir;
 use uuid::Uuid;
 
 use crate::AppState;
-use crate::server::model::{FinalFindings,Findings,severity_order};
+use crate::server::model::{FinalFindings,severity_order};
 use crate::server::service::OWASPScanner;
 
 
@@ -26,8 +24,8 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
             continue; 
         }
         
-        if path.extension().and_then(|e| e.to_str()) == Some("js") {
-            // it's a js file
+        if path.extension().and_then(|e| e.to_str()) == Some("js"){
+            // it's a js related file
             match std::fs::read_to_string(path){
                 Ok(content)=>{
                     // run the scan for each file and collect findings

@@ -16,3 +16,5 @@ walkdir = "2"
 axum = "0.8.9"
 htpp = "0.3.9"
 http = "1.4.1"
+oxc = { version = "0.134.0", features = ["full"] }
+oxc_ast = "0.134.0"

@@ -23,9 +23,9 @@ impl OWASPScanner {
         detectors.insert(
             Language::JavaScript,
             vec![
-                Box::new(JavaSciptEval),
-                Box::new(JavaSciptHardCodedSecret),
-                Box::new(JavaSciptSQLInjection),
+                Box::new(JavaSciptEval::initialize()),
+                Box::new(JavaSciptHardCodedSecret::initialize()),
+                Box::new(JavaSciptSQLInjection::initialize()),
             ],
         );
 
