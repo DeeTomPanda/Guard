@@ -1,5 +1,6 @@
 use crate::server::detectors::{
-    Detector, JavaSciptEval, JavaSciptHardCodedSecret, JavaSciptSQLInjection,
+    JavaScriptScanner,
+    Scanner
 };
 use crate::server::model::Findings;
 use std::collections::HashMap;
@@ -12,24 +13,20 @@ pub enum Language {
     Golang,
 }
 pub struct OWASPScanner {
-    detectors: HashMap<Language, Vec<Box<dyn Detector>>>,
+    scanners: HashMap<Language, Vec<Box<dyn Scanner>>>,
     // dyn because its a trait object, we want to store different types of detectors in the same vector
 }
 
 impl OWASPScanner {
     pub fn new() -> Self {
-        let mut detectors: HashMap<Language, Vec<Box<dyn Detector>>> = HashMap::new();
+        let mut scanners: HashMap<Language, Vec<Box<dyn Scanner>>> = HashMap::new();
 
-        detectors.insert(
+        scanners.insert(
             Language::JavaScript,
-            vec![
-                Box::new(JavaSciptEval::initialize()),
-                Box::new(JavaSciptHardCodedSecret::initialize()),
-                Box::new(JavaSciptSQLInjection::initialize()),
-            ],
+            vec![Box::new(JavaScriptScanner)],
         );
 
-        OWASPScanner { detectors }
+        OWASPScanner { scanners }
     }
 
     pub fn scan(&self, codebase: &str, file_path: &str) -> Vec<Findings> {
@@ -39,13 +36,13 @@ impl OWASPScanner {
             None => return all_findings,
         };
 
-        let detectors = match self.detectors.get(&language) {
+        let scanners = match self.scanners.get(&language) {
             Some(d) => d,
             None => return all_findings,
         };
         
-        for detector in detectors {
-            let findings = detector.detect(codebase, file_path);
+        for scanner in scanners {
+            let findings = scanner.scan(codebase, file_path);
             all_findings.extend(findings);
         }
         all_findings
