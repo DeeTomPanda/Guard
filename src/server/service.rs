@@ -1,13 +1,11 @@
-use crate::server::detectors::{
-    JavaScriptScanner,
-    Scanner
-};
+use crate::server::detectors::{JavaScriptScanner, Scanner, TypeScriptScanner};
 use crate::server::model::Findings;
 use std::collections::HashMap;
 
 #[derive(Eq, Hash, PartialEq)]
 pub enum Language {
     JavaScript,
+    TypeScript,
     Python,
     Java,
     Golang,
@@ -21,10 +19,8 @@ impl OWASPScanner {
     pub fn new() -> Self {
         let mut scanners: HashMap<Language, Vec<Box<dyn Scanner>>> = HashMap::new();
 
-        scanners.insert(
-            Language::JavaScript,
-            vec![Box::new(JavaScriptScanner)],
-        );
+        scanners.insert(Language::JavaScript, vec![Box::new(JavaScriptScanner)]);
+        scanners.insert(Language::TypeScript, vec![Box::new(TypeScriptScanner)]);
 
         OWASPScanner { scanners }
     }
@@ -40,7 +36,7 @@ impl OWASPScanner {
             Some(d) => d,
             None => return all_findings,
         };
-        
+
         for scanner in scanners {
             let findings = scanner.scan(codebase, file_path);
             all_findings.extend(findings);

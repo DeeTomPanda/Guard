@@ -93,3 +93,15 @@ pub fn contains_dynamic_value(expr: &Expression) -> bool {
         _ => true, // assume dynamic if unknown
     }
 }
+
+// unwrap as any assertions
+// eg:  (eval as any)(...) → eval(...)
+pub fn unwrap_ts_expression<'a>(expr: &'a Expression<'a>) -> &'a Expression<'a> {
+    match expr {
+        Expression::ParenthesizedExpression(e) => unwrap_ts_expression(&e.expression),
+        Expression::TSAsExpression(e) => unwrap_ts_expression(&e.expression),
+        Expression::TSSatisfiesExpression(e) => unwrap_ts_expression(&e.expression),
+        Expression::TSNonNullExpression(e) => unwrap_ts_expression(&e.expression),
+        _ => expr,
+    }
+}

@@ -4,12 +4,12 @@ use oxc::ast_visit::Visit;
 use crate::Findings;
 use oxc::allocator::Allocator;
 
-pub struct JavaScriptScanner;
+pub struct TypeScriptScanner;
 
 // checks presence of any eval() in the codebase
 // hardcoded secrets
 // SQL Injection vulnerabilities
-impl Scanner for JavaScriptScanner {
+impl Scanner for TypeScriptScanner {
     fn scan(&self, code: &str, file_path: &str) -> Vec<Findings> {
         let allocator = Allocator::default();
 

@@ -6,7 +6,8 @@ use serde::{Serialize, Deserialize};
 pub enum VulnerabilityType{
     Eval,
     HardcodedSecret,
-    SQLInjection
+    SQLInjection,
+    UnsafeTypeAssertion
 }
 #[derive(Serialize, Deserialize,PartialEq)]
 pub enum Severity{
@@ -31,7 +32,8 @@ impl Debug for VulnerabilityType{
         let vuln_str = match self{
             VulnerabilityType::Eval => "Eval",
             VulnerabilityType::HardcodedSecret => "Hardcoded Secret",
-            VulnerabilityType::SQLInjection => "SQL Injection"
+            VulnerabilityType::SQLInjection => "SQL Injection",
+            VulnerabilityType::UnsafeTypeAssertion =>"Potential Unsafe Assertion"
         };
         write!(f, "{}", vuln_str)
     }
@@ -42,7 +44,8 @@ impl PartialEq for VulnerabilityType {
         matches!((self, other), 
             (VulnerabilityType::Eval, VulnerabilityType::Eval) |
             (VulnerabilityType::HardcodedSecret, VulnerabilityType::HardcodedSecret) |
-            (VulnerabilityType::SQLInjection, VulnerabilityType::SQLInjection)
+            (VulnerabilityType::SQLInjection, VulnerabilityType::SQLInjection) |
+            (VulnerabilityType::UnsafeTypeAssertion, VulnerabilityType::UnsafeTypeAssertion)
         )
     }
 
