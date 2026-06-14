@@ -98,7 +98,7 @@ flutter build web --base-href /app/
 
 ## Planned
 
-- [ ] TypeScript support
+- [x] TypeScript support
 - [ ] Python support
 - [ ] Go support
 - [ ] SARIF output format (GitHub Code Scanning compatible)
