@@ -18,3 +18,5 @@ htpp = "0.3.9"
 http = "1.4.1"
 oxc = { version = "0.134.0", features = ["full"] }
 oxc_ast = "0.134.0"
+serde-sarif = "0.8.0"
+chrono = "0.4.45"

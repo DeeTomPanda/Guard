@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use crate::server::model::{FinalFindings};
+use crate::server::models::findings::{FinalFindings};
 
 pub struct AppState {
     // HashMap<scan_id, HashMap<file_name, Vec<Findings>>>

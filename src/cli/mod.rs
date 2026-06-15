@@ -3,7 +3,7 @@ use tokio::sync::RwLock;
 use uuid::Uuid;
 use walkdir::WalkDir;
 
-use crate::server::model::{severity_order, FinalFindings};
+use crate::server::models::findings::{severity_order, FinalFindings};
 use crate::server::service::OWASPScanner;
 use crate::AppState;
 

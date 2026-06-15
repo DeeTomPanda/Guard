@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::server::detectors::{JavaScriptScanner,Scanner};
-    use crate::server::model::VulnerabilityType;
+    use crate::server::models::findings::VulnerabilityType;
 
     // declare once, use everywhere
     static SCANNER: JavaScriptScanner = JavaScriptScanner{};

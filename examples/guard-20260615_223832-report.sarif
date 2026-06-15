@@ -1,0 +1,154 @@
+{
+  "runs": [
+    {
+      "results": [
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/AwesomeProject/index.js"
+                },
+                "region": {
+                  "startLine": 9
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "eval"
+          },
+          "ruleId": "eval-dangerous-call"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/AwesomeProject/index.js"
+                },
+                "region": {
+                  "startLine": 11
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "api-key"
+          },
+          "ruleId": "hardcoded-secret"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/AwesomeProject/index.js"
+                },
+                "region": {
+                  "startLine": 12
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "aws-secret"
+          },
+          "ruleId": "hardcoded-secret"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/AwesomeProject/index.js"
+                },
+                "region": {
+                  "startLine": 14
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "\"SELECT * FROM users where id =\" +\"userID\""
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/AwesomeProject/index.js"
+                },
+                "region": {
+                  "startLine": 17
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "something-secret"
+          },
+          "ruleId": "hardcoded-secret"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/AwesomeProject/metro.config.js"
+                },
+                "region": {
+                  "startLine": 10
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "eval"
+          },
+          "ruleId": "eval-dangerous-call"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/AwesomeProject/jest.config.ts"
+                },
+                "region": {
+                  "startLine": 4
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "another-secret"
+          },
+          "ruleId": "hardcoded-secret"
+        }
+      ],
+      "tool": {
+        "driver": {
+          "name": "Guard",
+          "rules": [
+            {
+              "id": "eval-dangerous-call",
+              "name": "Eval / Dangerous Call"
+            },
+            {
+              "id": "hardcoded-secret",
+              "name": "Hardcoded Secret"
+            },
+            {
+              "id": "sql-injection",
+              "name": "SQL Injection"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}

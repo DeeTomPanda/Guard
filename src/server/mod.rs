@@ -8,7 +8,7 @@ use tower_http::services::{ServeDir, ServeFile};
 
 pub mod detectors;
 pub mod handlers;
-pub mod model;
+pub mod models;
 pub mod service;
 
 pub async fn start_server(state: Arc<RwLock<AppState>>) {

@@ -1,5 +1,5 @@
 use super::js_and_ts::utils::*;
-use crate::server::model::{Severity, VulnerabilityType};
+use crate::server::models::findings::{Severity, VulnerabilityType};
 use crate::Findings;
 use oxc::ast_visit::Visit;
 use oxc::span::GetSpan;

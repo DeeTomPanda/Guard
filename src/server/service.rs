@@ -1,5 +1,5 @@
 use crate::server::detectors::{JavaScriptScanner, Scanner, TypeScriptScanner};
-use crate::server::model::Findings;
+use crate::server::models::findings::Findings;
 use std::collections::HashMap;
 
 #[derive(Eq, Hash, PartialEq)]
@@ -48,7 +48,9 @@ impl OWASPScanner {
     pub fn determine_language(file_path: &str) -> Option<Language> {
         if file_path.ends_with(".js") {
             Some(Language::JavaScript)
-        } else if file_path.ends_with(".py") {
+        } else if file_path.ends_with(".ts"){
+            Some(Language::TypeScript)
+        }else if file_path.ends_with(".py") {
             Some(Language::Python)
         } else if file_path.ends_with(".java") {
             Some(Language::Java)
