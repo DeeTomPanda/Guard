@@ -65,6 +65,36 @@ This will:
 3. Open the dashboard automatically at the results page
 4. Keep running until `Ctrl+C`
 
+
+## 🧾 SARIF Output (GitHub Code Scanning)
+
+Guard can export scan results in **SARIF format**, which is compatible with GitHub Code Scanning, VS Code SARIF Viewer, and other SARIF tools.
+
+---
+
+### Generate SARIF report
+
+```bash
+guard scan path/to/file.js --sarif
+```
+
+### Note
+
+This will:
+1. Run the scan as usual
+2. Generate a SARIF report from the findings
+3. Save it to a file automatically
+4. Output file naming
+
+If no output path is provided, Guard generates a default file like ` guard-20260615_142355-report.sarif `
+checkout `examples` to see the sample SARIF output.
+
+Guard SARIF output is compatible with:
+
+- GitHub Code Scanning  
+- VS Code SARIF Viewer  
+- Other SARIF-compliant tools  
+
 ### Start the server only
 
 ```bash
@@ -101,4 +131,4 @@ flutter build web --base-href /app/
 - [x] TypeScript support
 - [ ] Python support
 - [ ] Go support
-- [ ] SARIF output format (GitHub Code Scanning compatible)
+- [x] SARIF output format (GitHub Code Scanning compatible)
