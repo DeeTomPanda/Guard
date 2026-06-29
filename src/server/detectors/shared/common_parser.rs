@@ -149,14 +149,6 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
 }
 
 impl<'a> CodeVisitor<'a> {
-    pub fn new(file_path: &'a str, source_text: &'a str) -> Self {
-        Self {
-            findings: Vec::new(),
-            file_path,
-            source_text,
-        }
-    }
-
     // add to findings
     fn report(&mut self, snippet: &str, span_start: usize, vuln_type: VulnerabilityType) {
         let safe = span_start.min(self.source_text.len());

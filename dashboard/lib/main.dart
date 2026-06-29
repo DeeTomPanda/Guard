@@ -124,7 +124,6 @@ class _ResultsPageState extends State<ResultsPage> {
       setState(() {
         findings = data.map((e) => FinalFinding.fromJson(e)).toList();
         isLoading = false;
-        ;
       });
       pollingTimer?.cancel(); // stop polling
     }

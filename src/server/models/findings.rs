@@ -17,15 +17,6 @@ pub enum Severity {
     Low,
 }
 
-impl Severity {
-    pub fn sarif_level(&self) -> &'static str {
-        match self {
-            Severity::Critical | Severity::High => "error",
-            Severity::Medium => "warning",
-            Severity::Low => "note",
-        }
-    }
-}
 
 impl VulnerabilityType {
     pub fn rule_id(&self) -> &'static str {
@@ -43,23 +34,6 @@ impl VulnerabilityType {
             VulnerabilityType::SQLInjection => "SQL Injection",
             VulnerabilityType::HardcodedSecret => "Hardcoded Secret",
             VulnerabilityType::UnsafeTypeAssertion => "Unsafe Type Assertion",
-        }
-    }
-
-    pub fn description(&self) -> &'static str {
-        match self {
-            VulnerabilityType::Eval => {
-                "Use of eval(), Function(), or similar dynamic code execution is dangerous and can lead to code injection."
-            }
-            VulnerabilityType::SQLInjection => {
-                "User-controlled input is concatenated directly into a SQL query, risking SQL injection."
-            }
-            VulnerabilityType::HardcodedSecret => {
-                "A credential, API key, or token appears to be hardcoded in source code."
-            }
-            VulnerabilityType::UnsafeTypeAssertion => {
-                "Use of 'as any' bypasses TypeScript's type checking and may hide unsafe operations."
-            }
         }
     }
 }

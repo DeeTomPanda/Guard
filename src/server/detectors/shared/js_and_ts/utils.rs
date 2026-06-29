@@ -1,4 +1,4 @@
-use oxc_ast::ast::{BinaryOperator, Expression};
+use oxc_ast::ast::{Expression};
 
 pub fn is_secret_name(name: &str) -> bool {
     const KEYWORDS: &[&str] = &[
