@@ -33,16 +33,15 @@ This example shows the JavaScript scan flow. Other languages follow the same hig
 
 ```
 CLI scan path
-    └── parse JS with OXC
-            └── walk AST with CodeVisitor
-                    └── visit_call_expression / visit_variable_declaration
+    └── parse code with language-specific parser (OXC for JS/TS, tree-sitter for Go, etc.)
+            └── build AST
+                    └── query/traverse AST for security patterns
                             └── report() → push to findings Vec
                                     └── store in AppState
                                             └── serve via GET /api/results/{scan_id}
                                                     └── Flutter dashboard renders findings
 ```
 
-For other languages, replace the JS parser/visitor with the appropriate language-specific analyzer.
 
 ### Server Layout
 
@@ -132,8 +131,13 @@ flutter build web --base-href /app/
 
 ## Planned
 
-- [x] TypeScript support
 - [ ] Taint Analysis
 - [ ] Python support
+- [ ] Java support
+
+## Completed
+
+- [x] JavaScript support
+- [x] TypeScript support
 - [x] Go support
 - [x] SARIF output format (GitHub Code Scanning compatible)
