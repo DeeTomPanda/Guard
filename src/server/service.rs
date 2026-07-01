@@ -1,4 +1,4 @@
-use crate::server::detectors::{JavaScriptScanner, Scanner, TypeScriptScanner};
+use crate::server::detectors::{JavaScriptScanner, Scanner, TypeScriptScanner, GolangScanner};
 use crate::server::models::findings::Findings;
 use std::collections::HashMap;
 
@@ -11,16 +11,17 @@ pub enum Language {
     Golang,
 }
 pub struct OWASPScanner {
-    scanners: HashMap<Language, Vec<Box<dyn Scanner>>>,
+    scanners: HashMap<Language, Box<dyn Scanner>>,
     // dyn because its a trait object, we want to store different types of detectors in the same vector
 }
 
 impl OWASPScanner {
     pub fn new() -> Self {
-        let mut scanners: HashMap<Language, Vec<Box<dyn Scanner>>> = HashMap::new();
+        let mut scanners: HashMap<Language, Box<dyn Scanner>> = HashMap::new();
 
-        scanners.insert(Language::JavaScript, vec![Box::new(JavaScriptScanner)]);
-        scanners.insert(Language::TypeScript, vec![Box::new(TypeScriptScanner)]);
+        scanners.insert(Language::JavaScript, Box::new(JavaScriptScanner));
+        scanners.insert(Language::TypeScript, Box::new(TypeScriptScanner));
+        scanners.insert(Language::Golang, Box::new(GolangScanner));
 
         OWASPScanner { scanners }
     }
@@ -37,10 +38,8 @@ impl OWASPScanner {
             None => return all_findings,
         };
 
-        for scanner in scanners {
-            let findings = scanner.scan(codebase, file_path);
-            all_findings.extend(findings);
-        }
+        let findings = scanners.scan(codebase, file_path);
+        all_findings.extend(findings);
         all_findings
     }
 

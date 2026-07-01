@@ -32,7 +32,6 @@ mod test {
     fn detects_as_any_usage() {
         let code = r#"const x = userInput as any;"#;
         let findings = SCANNER.scan(code, "test.ts");
-        dbg!(&findings);
         assert!(findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::UnsafeTypeAssertion));

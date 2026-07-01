@@ -35,6 +35,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                                         &value,
                                         prop.span().start as usize,
                                         VulnerabilityType::HardcodedSecret,
+                                        Severity::Critical
                                     );
                                 }
                             }
@@ -54,6 +55,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                                 &value,
                                 init.span().start as usize,
                                 VulnerabilityType::HardcodedSecret,
+                                Severity::Critical
                             );
                         }
                     }
@@ -68,7 +70,12 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
         if let Expression::Identifier(ident) = &node.callee {
             if ident.name.as_str() == "Function" {
                 let name = ident.name.as_str();
-                self.report(name, node.span().start as usize, VulnerabilityType::Eval);
+                self.report(
+                    name,
+                    node.span().start as usize,
+                    VulnerabilityType::Eval,
+                    Severity::High,
+                );
             }
         }
         // walk into children and recurse
@@ -85,7 +92,12 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
             let name = ident.name.as_str();
 
             if is_dangerous_call(name) {
-                self.report(name, node.span().start as usize, VulnerabilityType::Eval);
+                self.report(
+                    name,
+                    node.span().start as usize,
+                    VulnerabilityType::Eval,
+                    Severity::High,
+                );
             }
         }
 
@@ -106,6 +118,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                                 snippet,
                                 node.span().start as usize,
                                 VulnerabilityType::SQLInjection,
+                                Severity::Critical,
                             );
                         }
                     }
@@ -120,6 +133,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                                 snippet,
                                 node.span().start as usize,
                                 VulnerabilityType::SQLInjection,
+                                Severity::Critical,
                             );
                         }
                     }
@@ -133,12 +147,12 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
     }
 
     fn visit_ts_as_expression(&mut self, node: &TSAsExpression<'a>) {
-        dbg!("visit_ts_as_expression called", &node.type_annotation);
         if let TSType::TSAnyKeyword(_) = &node.type_annotation {
             self.report(
                 "as any",
                 node.span().start as usize,
                 VulnerabilityType::UnsafeTypeAssertion,
+                Severity::Low,
             );
         }
         // manual call to dleev deeper !
@@ -148,9 +162,15 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
     }
 }
 
-impl<'a> CodeVisitor<'a> {
+impl CodeVisitor<'_> {
     // add to findings
-    fn report(&mut self, snippet: &str, span_start: usize, vuln_type: VulnerabilityType) {
+    fn report(
+        &mut self,
+        snippet: &str,
+        span_start: usize,
+        vuln_type: VulnerabilityType,
+        severity: Severity,
+    ) {
         let safe = span_start.min(self.source_text.len());
         let line = self.source_text[..safe].lines().count() + 1;
 
@@ -159,7 +179,7 @@ impl<'a> CodeVisitor<'a> {
             line_no: line.to_string(),
             file_path: self.file_path.to_string(),
             snippet: snippet.to_string(),
-            severity: Severity::High,
+            severity,
         });
     }
 

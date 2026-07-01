@@ -2,12 +2,14 @@ use serde::{Deserialize, Serialize};
 use std::cmp::PartialEq;
 use std::fmt::Debug;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub enum VulnerabilityType {
     Eval,
     HardcodedSecret,
     SQLInjection,
     UnsafeTypeAssertion,
+    UnsafeCodeExecution,
+    UnsafeFileOperation
 }
 #[derive(Serialize, Deserialize, PartialEq)]
 pub enum Severity {
@@ -25,6 +27,8 @@ impl VulnerabilityType {
             VulnerabilityType::SQLInjection => "sql-injection",
             VulnerabilityType::HardcodedSecret => "hardcoded-secret",
             VulnerabilityType::UnsafeTypeAssertion => "unsafe-type-assertion",
+            VulnerabilityType::UnsafeCodeExecution=>"unsafe-code-execution",
+            VulnerabilityType::UnsafeFileOperation=>"unsafe-file-operation"
         }
     }
 
@@ -34,6 +38,8 @@ impl VulnerabilityType {
             VulnerabilityType::SQLInjection => "SQL Injection",
             VulnerabilityType::HardcodedSecret => "Hardcoded Secret",
             VulnerabilityType::UnsafeTypeAssertion => "Unsafe Type Assertion",
+            VulnerabilityType::UnsafeCodeExecution=>"Unsafe Code Execution",
+            VulnerabilityType::UnsafeFileOperation=>"Unsafe File Operation"
         }
     }
 }
@@ -56,6 +62,8 @@ impl Debug for VulnerabilityType {
             VulnerabilityType::HardcodedSecret => "Hardcoded Secret",
             VulnerabilityType::SQLInjection => "SQL Injection",
             VulnerabilityType::UnsafeTypeAssertion => "Potential Unsafe Assertion",
+            VulnerabilityType::UnsafeCodeExecution=>"Potential Unsafe Code Execution",
+            VulnerabilityType::UnsafeFileOperation=>"Potential Unsafe File Operation"
         };
         write!(f, "{}", vuln_str)
     }
@@ -77,6 +85,14 @@ impl PartialEq for VulnerabilityType {
                 | (
                     VulnerabilityType::UnsafeTypeAssertion,
                     VulnerabilityType::UnsafeTypeAssertion
+                )
+                | (
+                    VulnerabilityType::UnsafeCodeExecution,
+                    VulnerabilityType::UnsafeCodeExecution
+                )
+                | (
+                    VulnerabilityType::UnsafeFileOperation,
+                    VulnerabilityType::UnsafeFileOperation
                 )
         )
     }
