@@ -59,7 +59,7 @@ localhost:3000/
 ### Scan a file and open the dashboard
 
 ```bash
-guard scan path/to/file.js
+guard scan path/to/(file or any dir)
 ```
 
 This will:
