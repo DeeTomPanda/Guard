@@ -29,6 +29,8 @@ A static analysis security tool for JavaScript, built in Rust. Guard uses AST tr
 
 ### How a Scan Works
 
+This example shows the JavaScript scan flow. Other languages follow the same high-level path with a language-specific parser and analyzer.
+
 ```
 CLI scan path
     └── parse JS with OXC
@@ -39,6 +41,8 @@ CLI scan path
                                             └── serve via GET /api/results/{scan_id}
                                                     └── Flutter dashboard renders findings
 ```
+
+For other languages, replace the JS parser/visitor with the appropriate language-specific analyzer.
 
 ### Server Layout
 
@@ -129,6 +133,7 @@ flutter build web --base-href /app/
 ## Planned
 
 - [x] TypeScript support
+- [ ] Taint Analysis
 - [ ] Python support
-- [ ] Go support
+- [x] Go support
 - [x] SARIF output format (GitHub Code Scanning compatible)

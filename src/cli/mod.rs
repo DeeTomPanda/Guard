@@ -7,22 +7,52 @@ use crate::server::models::findings::{severity_order, FinalFindings};
 use crate::server::service::OWASPScanner;
 use crate::AppState;
 
+
+const IGNORED_DIRS: &[&str] = &[
+    "node_modules",
+    "vendor",
+    "target",
+    "__pycache__",
+    ".venv",
+    "venv",
+    ".git",
+    ".idea",
+    ".vscode",
+    "dist",
+    "build",
+];
+
 // start the scan of the directory
 pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
     let owasp_scanner = OWASPScanner::new();
     let mut all_findings: Vec<FinalFindings> = Vec::new();
 
     for entry in WalkDir::new(path) {
-        let entry = entry.unwrap();
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(err) => {
+                eprintln!("encountered error: {}", err);
+                continue;
+            }
+        };
         let path = entry.path();
 
-        if path.to_str().unwrap().contains("node_modules") {
+        // ignore common dependency/build directories for multiple languages.
+        if path.components().any(|component| {
+            component
+                .as_os_str()
+                .to_str()
+                .map(|segment| IGNORED_DIRS.contains(&segment))
+                .unwrap_or(false)
+        }) {
             continue;
         }
 
-        let ext = path.extension().and_then(|e| e.to_str());
-        if matches!(ext, Some("js") | Some("jsx") | Some("ts") | Some("tsx")) {
-            // it's a js/ts related file
+        let file_path = path.to_string_lossy();
+        let is_supported_file = OWASPScanner::determine_language(file_path.as_ref()).is_some();
+
+        if is_supported_file {
+            // scan files for supported languages (JS, TS, Go, etc.)
             match std::fs::read_to_string(path) {
                 Ok(content) => {
                     // run the scan for each file and collect findings
