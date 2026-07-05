@@ -20,8 +20,8 @@ mod tests {
                 password: "objsecret"
             }
         "#;
-        let findings = SCANNER.scan(code, "test.js");
-        let secrets: Vec<_> = findings
+        let scan_result = SCANNER.scan(code, "test.js");
+        let secrets: Vec<_> = scan_result.findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::HardcodedSecret)
             .collect();
@@ -36,8 +36,8 @@ mod tests {
             const apiKey = fetchApiKey();
             const token = generateToken();
         "#;
-        let findings = SCANNER.scan(code, "test.js");
-        let secrets: Vec<_> = findings
+        let scan_result = SCANNER.scan(code, "test.js");
+        let secrets: Vec<_> = scan_result.findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::HardcodedSecret)
             .collect();
@@ -51,8 +51,8 @@ mod tests {
             const passwd = `${getPassword()}`;
             const token = `Bearer ${fetchToken()}`;
         "#;
-        let findings = SCANNER.scan(code, "test.js");
-        let secrets: Vec<_> = findings
+        let scan_result = SCANNER.scan(code, "test.js");
+        let secrets: Vec<_> = scan_result.findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::HardcodedSecret)
             .collect();
@@ -67,8 +67,8 @@ mod tests {
             const username = "admin";
             const greeting = "hello world";
         "#;
-        let findings = SCANNER.scan(code, "test.js");
-        let secrets: Vec<_> = findings
+        let scan_result = SCANNER.scan(code, "test.js");
+        let secrets: Vec<_> = scan_result.findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::HardcodedSecret)
             .collect();
@@ -81,8 +81,8 @@ mod tests {
             const password="supersecret";
             const config = { password: "secret" } 
         "#;
-        let findings = SCANNER.scan(code, "test.js");
-        let secrets: Vec<_> = findings
+        let scan_result = SCANNER.scan(code, "test.js");
+        let secrets: Vec<_> = scan_result.findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::HardcodedSecret)
             .collect();
@@ -98,8 +98,8 @@ mod tests {
         let code = r#"
             eval("alert(1)");
         "#;
-        let findings = SCANNER.scan(code, "test.js");
-        let evals: Vec<_> = findings
+        let scan_result = SCANNER.scan(code, "test.js");
+        let evals: Vec<_> = scan_result.findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::Eval)
             .collect();
@@ -112,8 +112,8 @@ mod tests {
         let code = r#"
             const fn = new Function("return 1");
         "#;
-        let findings = SCANNER.scan(code, "test.js");
-        let evals: Vec<_> = findings
+        let scan_result = SCANNER.scan(code, "test.js");
+        let evals: Vec<_> = scan_result.findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::Eval)
             .collect();
@@ -127,8 +127,8 @@ mod tests {
             setTimeout("doSomething()", 1000);
             setInterval("doSomethingElse()", 500);
         "#;
-        let findings = SCANNER.scan(code, "test.js");
-        let evals: Vec<_> = findings
+        let scan_result = SCANNER.scan(code, "test.js");
+        let evals: Vec<_> = scan_result.findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::Eval)
             .collect();
@@ -142,8 +142,8 @@ mod tests {
             Math.random();
             parseInt("42");
         "#;
-        let findings = SCANNER.scan(code, "test.js");
-        let evals: Vec<_> = findings
+        let scan_result = SCANNER.scan(code, "test.js");
+        let evals: Vec<_> = scan_result.findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::Eval)
             .collect();
@@ -159,8 +159,8 @@ mod tests {
         let code = r#"
             db.query(`SELECT * FROM ${table}`);
         "#;
-        let findings = SCANNER.scan(code, "test.js");
-        let sql: Vec<_> = findings
+        let scan_result = SCANNER.scan(code, "test.js");
+        let sql: Vec<_> = scan_result.findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::SQLInjection)
             .collect();
@@ -172,8 +172,8 @@ mod tests {
         let code = r#"
             db.query("SELECT * FROM " + table + " WHERE id = " + id);
         "#;
-        let findings = SCANNER.scan(code, "test.js");
-        let sql: Vec<_> = findings
+        let scan_result = SCANNER.scan(code, "test.js");
+        let sql: Vec<_> = scan_result.findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::SQLInjection)
             .collect();
@@ -186,8 +186,8 @@ mod tests {
         let code = r#"
             db.query("SELECT * FROM users WHERE id = 1");
         "#;
-        let findings = SCANNER.scan(code, "test.js");
-        let sql: Vec<_> = findings
+        let scan_result = SCANNER.scan(code, "test.js");
+        let sql: Vec<_> = scan_result.findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::SQLInjection)
             .collect();
@@ -200,8 +200,8 @@ mod tests {
         let code = r#"
             db.query(`${"SELECT * FROM " + table}`);
         "#;
-        let findings = SCANNER.scan(code, "test.js");
-        let sql: Vec<_> = findings
+        let scan_result = SCANNER.scan(code, "test.js");
+        let sql: Vec<_> = scan_result.findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::SQLInjection)
             .collect();
@@ -215,8 +215,8 @@ mod tests {
             db.query("SELECT * FROM users WHERE id = ?", [id]);
             db.query("SELECT * FROM users WHERE id = $1", [id]);
         "#;
-        let findings = SCANNER.scan(code, "test.js");
-        let sql: Vec<_> = findings
+        let scan_result = SCANNER.scan(code, "test.js");
+        let sql: Vec<_> = scan_result.findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::SQLInjection)
             .collect();
@@ -230,8 +230,8 @@ mod tests {
             const msg = `Hello ${name}`;
             console.log(`User ${id} logged in`);
         "#;
-        let findings = SCANNER.scan(code, "test.js");
-        let sql: Vec<_> = findings
+        let scan_result = SCANNER.scan(code, "test.js");
+        let sql: Vec<_> = scan_result.findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::SQLInjection)
             .collect();
@@ -249,14 +249,14 @@ mod tests {
             eval(userInput);
             db.query(`SELECT * FROM ${table}`);
         "#;
-        let findings = SCANNER.scan(code, "test.js");
-        assert!(findings
+        let scan_result = SCANNER.scan(code, "test.js");
+        assert!(scan_result.findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::HardcodedSecret));
-        assert!(findings
+        assert!(scan_result.findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::Eval));
-        assert!(findings
+        assert!(scan_result.findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::SQLInjection));
     }
@@ -268,7 +268,7 @@ mod tests {
             const version = getVersion();
             const result = db.query("SELECT * FROM users WHERE id = ?", [userId]);
         "#;
-        let findings = SCANNER.scan(code, "test.js");
-        assert_eq!(findings.len(), 0);
+        let scan_result = SCANNER.scan(code, "test.js");
+        assert_eq!(scan_result.findings.len(), 0);
     }
 }

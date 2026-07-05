@@ -1,6 +1,8 @@
+use std::iter::Scan;
+
 use crate::server::detectors::shared::common_parser::{parse_to_ast, CodeVisitor};
 use crate::server::detectors::Scanner;
-use crate::Findings;
+use crate::server::models::results::ScanResult;
 use oxc::allocator::Allocator;
 use oxc::ast_visit::Visit;
 
@@ -10,24 +12,23 @@ pub struct JavaScriptScanner;
 // hardcoded secrets
 // SQL Injection vulnerabilities
 impl Scanner for JavaScriptScanner {
-    fn scan(&self, code: &str, file_path: &str) -> Vec<Findings> {
+    fn scan(&self, code: &str, file_path: &str) -> ScanResult {
         let allocator = Allocator::default();
 
         let ast = match parse_to_ast(code, &allocator, file_path) {
             Ok(program) => program,
             Err(e) => {
                 eprintln!("Parse error: {}", e);
-                return vec![];
+                return ScanResult{
+                    findings:vec![],
+                    symbols:vec![]
+                };
             }
         };
 
-        let mut visitor = CodeVisitor {
-            findings: Vec::new(),
-            file_path,
-            source_text: code,
-        };
+        let mut visitor = CodeVisitor::new(file_path,code);
 
         visitor.visit_program(&ast);
-        visitor.list_possible_threats()
+        visitor.into_scan_result()
     }
 }

@@ -1,5 +1,5 @@
 use crate::server::models::findings::{Severity, VulnerabilityType};
-use crate::server::{detectors::Scanner, models::findings::Findings};
+use crate::server::{detectors::Scanner, models::{results::ScanResult,findings::Findings}};
 
 pub struct GolangScanner;
 
@@ -9,10 +9,13 @@ pub(super) struct GolangTreeSitter<'a> {
 }
 
 impl Scanner for GolangScanner {
-    fn scan(&self, code: &str, file_path: &str) -> Vec<Findings> {
+    fn scan(&self, code: &str, file_path: &str) -> ScanResult {
         let mut tree_sitter = GolangTreeSitter::new(file_path);
         tree_sitter.analyze(code);
-        tree_sitter.list_possible_threats()
+        ScanResult {
+            findings: tree_sitter.list_possible_threats(),
+            symbols: Vec::new(), // Placeholder - implement symbol analysis if needed
+        }
     }
 }
 

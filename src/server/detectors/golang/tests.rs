@@ -23,8 +23,8 @@ mod tests {
             }
         "#;
 
-        let findings = SCANNER.scan(code, "test.go");
-        let ops: Vec<_> = findings
+        let scan_result = SCANNER.scan(code, "test.go");
+        let ops: Vec<_> = scan_result.findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::UnsafeFileOperation)
             .collect();
@@ -42,8 +42,8 @@ mod tests {
             var token = "tokval"
         "#;
 
-        let findings = SCANNER.scan(code, "test.go");
-        let secrets: Vec<_> = findings
+        let scan_result = SCANNER.scan(code, "test.go");
+        let secrets: Vec<_> = scan_result.findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::HardcodedSecret)
             .collect();
@@ -66,9 +66,9 @@ mod tests {
             }
         "#;
 
-        let findings = SCANNER.scan(code, "test.go");
+        let scan_result = SCANNER.scan(code, "test.go");
 
-        assert!(findings
+        assert!(scan_result.findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::SQLInjection));
     }
@@ -96,9 +96,9 @@ mod tests {
             }
         "#;
 
-        let findings = SCANNER.scan(code, "test.go");
+        let scan_result = SCANNER.scan(code, "test.go");
 
-        assert!(findings
+        assert!(scan_result.findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::SQLInjection));
     }
@@ -124,9 +124,9 @@ mod tests {
             }
         "#;
 
-        let findings = SCANNER.scan(code, "test.go");
+        let scan_result = SCANNER.scan(code, "test.go");
 
-        assert!(findings
+        assert!(scan_result.findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::SQLInjection));
     }
@@ -144,8 +144,8 @@ mod tests {
             }
         "#;
 
-        let findings = SCANNER.scan(code, "test.go");
-        assert!(findings
+        let scan_result = SCANNER.scan(code, "test.go");
+        assert!(scan_result.findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::UnsafeCodeExecution));
     }
@@ -163,8 +163,8 @@ mod tests {
             }
         "#;
 
-        let findings = SCANNER.scan(code, "test.go");
-        assert_eq!(findings.len(), 0);
+        let scan_result = SCANNER.scan(code, "test.go");
+        assert_eq!(scan_result.findings.len(), 0);
     }
 
     #[test]
@@ -202,7 +202,7 @@ mod tests {
             }
         "#;
 
-        let findings = SCANNER.scan(code, "test.go");
-        assert!(findings.is_empty());
+        let scan_result = SCANNER.scan(code, "test.go");
+        assert!(scan_result.findings.is_empty());
     }
 }
