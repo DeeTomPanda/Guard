@@ -16,8 +16,8 @@ pub async fn get_results(
 
     let state_read = state.read().await;
 
-    if let Some(findings) = state_read.results.get(&scan_id) {
-        Json(findings).into_response()
+    if let Some(scan_result) = state_read.results.get(&scan_id) {
+        Json(&scan_result.findings).into_response()
     } else {
         StatusCode::NOT_FOUND.into_response()
     }

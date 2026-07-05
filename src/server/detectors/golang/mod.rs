@@ -1,5 +1,5 @@
 mod exec_injection;
-mod file_opertaions;
+mod file_operations;
 pub mod go_scanner;
 mod hardcoded_secrets;
 mod sql_injection;

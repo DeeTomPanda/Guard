@@ -1,5 +1,3 @@
-use std::iter::Scan;
-
 use crate::server::detectors::shared::common_parser::{parse_to_ast, CodeVisitor};
 use crate::server::detectors::Scanner;
 use crate::server::models::results::ScanResult;

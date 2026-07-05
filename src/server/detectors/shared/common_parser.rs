@@ -6,7 +6,7 @@ use crate::server::models::{
 };
 use crate::Findings;
 use oxc::ast_visit::Visit;
-use oxc::span::GetSpan;
+use oxc::span::{GetSpan, Span};
 use oxc::{allocator::Allocator, parser::Parser, span::SourceType};
 use oxc_ast::ast::{BindingPattern, CallExpression, Expression, NewExpression, VariableDeclarator};
 use oxc_ast::ast::{TSAsExpression, TSType};
@@ -17,16 +17,29 @@ pub struct CodeVisitor<'a> {
     pub source_text: &'a str,
     pub symbols: Vec<Symbol>,
     scope_stack: Vec<String>,
+    line_starts:Vec<usize>
 }
 
 impl<'a> CodeVisitor<'a> {
     pub fn new(file_path: &'a str, source_text: &'a str) -> Self {
+        // feault start for all files
+        let mut line_starts=vec![0];
+
+        // loop through entire file bytes for start
+
+        for (i,c) in source_text.char_indices(){
+            if c=='\n'{
+                line_starts.push(i+1);
+            }
+        }
+
         Self {
             file_path,
             source_text,
             findings: vec![],
             symbols: vec![],
             scope_stack: vec![],
+            line_starts
         }
     }
 
@@ -44,20 +57,29 @@ impl<'a> CodeVisitor<'a> {
         self.source_text[..safe].lines().count() + 1
     }
 
+    fn offset_to_line_col(&self, pos: usize) -> (usize, usize) {
+        let idx = self.line_starts.partition_point(|&x| x <= pos) - 1;
+
+        let line = idx + 1;
+        let col = pos - self.line_starts[idx];
+
+        (line, col)
+    }
+
     // add to findings
     fn report(
         &mut self,
         snippet: &str,
-        span_start: usize,
+        span: Span,
         vuln_type: VulnerabilityType,
         severity: Severity,
     ) {
-        let safe = span_start.min(self.source_text.len());
-        let line = self.source_text[..safe].lines().count() + 1;
+        let (line, col) = self.offset_to_line_col(span.start as usize);
 
         self.findings.push(Findings {
             vuln_type,
             line_no: line.to_string(),
+            col_no:col.to_string(),
             file_path: self.file_path.to_string(),
             snippet: snippet.to_string(),
             severity,
@@ -106,7 +128,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                                 if let Some(value) = is_hardcoded_secret(value) {
                                     self.report(
                                         &value,
-                                        prop.span().start as usize,
+                                        prop.span(),
                                         VulnerabilityType::HardcodedSecret,
                                         Severity::Critical,
                                     );
@@ -126,7 +148,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                         if let Some(value) = is_hardcoded_secret(init) {
                             self.report(
                                 &value,
-                                init.span().start as usize,
+                                init.span(),
                                 VulnerabilityType::HardcodedSecret,
                                 Severity::Critical,
                             );
@@ -144,12 +166,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
         if let Expression::Identifier(ident) = &node.callee {
             if ident.name.as_str() == "Function" {
                 let name = ident.name.as_str();
-                self.report(
-                    name,
-                    node.span().start as usize,
-                    VulnerabilityType::Eval,
-                    Severity::High,
-                );
+                self.report(name, node.span(), VulnerabilityType::Eval, Severity::High);
             }
         }
         // walk into children and recurse
@@ -158,7 +175,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
 
     // for functions
     // eg: save(x)
-    // db.query() 
+    // db.query()
     // require()
     fn visit_call_expression(&mut self, node: &CallExpression<'a>) {
         // for TS
@@ -169,12 +186,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
             let name = ident.name.as_str();
 
             if is_dangerous_call(name) {
-                self.report(
-                    name,
-                    node.span().start as usize,
-                    VulnerabilityType::Eval,
-                    Severity::High,
-                );
+                self.report(name, node.span(), VulnerabilityType::Eval, Severity::High);
             }
 
             // CommonJS imports via require()
@@ -213,7 +225,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                             let snippet = &self.source_text[start..end];
                             self.report(
                                 snippet,
-                                node.span().start as usize,
+                                node.span(),
                                 VulnerabilityType::SQLInjection,
                                 Severity::Critical,
                             );
@@ -228,7 +240,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                             let snippet = &self.source_text[start..end];
                             self.report(
                                 snippet,
-                                node.span().start as usize,
+                                node.span(),
                                 VulnerabilityType::SQLInjection,
                                 Severity::Critical,
                             );
@@ -248,7 +260,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
         if let TSType::TSAnyKeyword(_) = &node.type_annotation {
             self.report(
                 "as any",
-                node.span().start as usize,
+                node.span(),
                 VulnerabilityType::UnsafeTypeAssertion,
                 Severity::Low,
             );

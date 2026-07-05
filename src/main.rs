@@ -20,9 +20,6 @@ enum Command {
         sarif: bool,
 
         #[arg(long)]
-        analyze: bool,
-
-        #[arg(long)]
         output: Option<String>,
     },
     Serve,
@@ -44,7 +41,6 @@ async fn main() {
         Command::Scan {
             path,
             sarif,
-            analyze,
             output,
         } => {
             let scan_id = cli::scan(path, Arc::clone(&state)).await;
@@ -57,7 +53,7 @@ async fn main() {
 
                 let state_read = state.read().await;
                 if let Some(results) = state_read.results.get(&scan_id) {
-                    match to_sarif_json(&results) {
+                    match to_sarif_json(&results.findings) {
                         Ok(json) => {
                             std::fs::write(file_path, json).unwrap();
                         }
@@ -81,7 +77,7 @@ async fn main() {
             let scan_id = cli::scan(path, Arc::clone(&state)).await;
             let state_read = state.read().await;
 
-            if let Some(ref table) = state_read.symbol_table {
+            if let Some(scan_data) = state_read.results.get(&scan_id) {
                 let mut functions = 0;
                 let mut methods = 0;
                 let mut variables = 0;
@@ -89,7 +85,7 @@ async fn main() {
                 let mut imports = 0;
                 let mut classes = 0;
 
-                for symbols in table.symbols.values() {
+                for symbols in scan_data.symbol_table.symbols.values() {
                     for sym in symbols {
                         match sym.kind {
                             SymbolKind::Function => functions += 1,

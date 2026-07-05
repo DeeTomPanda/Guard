@@ -26,13 +26,13 @@ const QUERY_SECRET_STRUCT: &str = r#"
 "#;
 
 impl GolangTreeSitter<'_> {
-    pub(super) fn check_secrets(&mut self, root: Node, src: &[u8]) {
+    pub(super) fn check_secrets(&mut self, root: Node, code_bytes: &[u8]) {
         for query_src in [QUERY_SECRET_VAR, QUERY_SECRET_CONST, QUERY_SECRET_STRUCT] {
-            for m in match_pattern(query_src, root, src) {
+            for m in match_pattern(query_src, root, code_bytes) {
                 if let Some((_, snippet, line, _)) = m.iter().find(|(n, ..)| n == "snippet") {
                     self.report(
                         snippet,
-                        &line.to_string(),
+                        root,
                         VulnerabilityType::HardcodedSecret,
                         Severity::Critical,
                     );

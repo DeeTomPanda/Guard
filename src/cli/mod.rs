@@ -1,3 +1,4 @@
+use ignore::WalkBuilder;
 use rayon::prelude::*;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -5,42 +6,26 @@ use tokio::sync::RwLock;
 use uuid::Uuid;
 use walkdir::WalkDir;
 
-use crate::server::models::{
-    findings::{severity_order, FinalFindings},
-    symbols::{Symbol, SymbolTable},
-};
 use crate::server::service::OWASPScanner;
 use crate::AppState;
-
-const IGNORED_DIRS: &[&str] = &[
-    "node_modules",
-    "vendor",
-    "target",
-    "__pycache__",
-    ".venv",
-    "venv",
-    ".git",
-    ".idea",
-    ".vscode",
-    "dist",
-    "build",
-];
+use crate::{
+    server::models::{
+        findings::{severity_order, FinalFindings},
+        symbols::{Symbol, SymbolTable},
+    },
+    state::ScanData,
+};
 
 // start the scan of the directory
 pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
     let owasp_scanner = OWASPScanner::new();
-
-    let entries: Vec<_> = WalkDir::new(&path)
-        .into_iter()
+    let entries: Vec<_> = WalkBuilder::new(&path)
+        .hidden(false)
+        .git_ignore(true) 
+        .git_global(true) 
+        .git_exclude(true)
+        .build()
         .filter_map(|e| e.ok())
-        .filter(|e| {
-            !e.path().components().any(|c| {
-                c.as_os_str()
-                    .to_str()
-                    .map(|s| IGNORED_DIRS.contains(&s))
-                    .unwrap_or(false) // maybe not utf-8, but still try and log error if any
-            })
-        })
         .filter(|e| OWASPScanner::determine_language(&e.path().to_string_lossy()).is_some())
         .collect();
 
@@ -98,22 +83,15 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
 
     let scan_id = Uuid::new_v4().to_string();
     let mut state = state.write().await;
-    state.results.insert(scan_id.clone(), all_findings);
-    state.symbol_table = Some(SymbolTable {
+    let symbol_table = SymbolTable {
         symbols: symbol_map,
-    });
+    };
+    let scan_data = ScanData {
+        findings: all_findings,
+        symbol_table,
+    };
 
-    // temporary debug, remove later
-    if let Some(ref table) = state.symbol_table {
-        let total: usize = table.symbols.values().map(|v| v.len()).sum();
-        println!("Symbols extracted: {}", total);
-        for (file, symbols) in &table.symbols {
-            println!("  {}", file);
-            for sym in symbols {
-                println!("    {:?} {} (scope: {})", sym.kind, sym.name, sym.scope);
-            }
-        }
-    }
+    state.results.insert(scan_id.clone(), scan_data);
 
     scan_id
 }
