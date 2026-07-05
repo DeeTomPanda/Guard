@@ -10,7 +10,7 @@
 
 > ⚠️ Work in progress — APIs and output formats may change.
 
-A static analysis security tool for any codebase built in Rust. Guard uses AST traversal (via [OXC](https://github.com/oxc-project/oxc)) to detect security vulnerabilities with higher accuracy than regex-based approaches. Results are viewable directly in the terminal or through a local Flutter dashboard.
+A static analysis security tool for any codebase built in Rust. Guard uses AST traversal (via [OXC](https://github.com/oxc-project/oxc)) for JS/TS and tree-sitter for other languages to detect security vulnerabilities with higher accuracy than regex-based approaches. Results are viewable directly in the terminal or through a local Flutter dashboard.
 
 ---
 
