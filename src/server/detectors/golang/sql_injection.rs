@@ -122,7 +122,7 @@ const QUERY_GORM_RAW_VAR: &str = r#"
 "#;
 
 impl GolangTreeSitter<'_> {
-    pub (super) fn check_sql_sprintf(&mut self, root: Node, src: &[u8]) {
+    pub(super) fn check_sql_sprintf(&mut self, root: Node, src: &[u8]) {
         for m in match_pattern(QUERY_SQL_SPRINTF, root, src) {
             let query = m
                 .iter()
@@ -152,7 +152,7 @@ impl GolangTreeSitter<'_> {
             }
         }
 
-         for m in match_pattern(QUERY_SQL_SPRINTF_CONTEXT, root, src) {
+        for m in match_pattern(QUERY_SQL_SPRINTF_CONTEXT, root, src) {
             let query = m
                 .iter()
                 .find(|(n, ..)| n == "query")
@@ -182,7 +182,7 @@ impl GolangTreeSitter<'_> {
         }
     }
 
-    pub(super)fn check_sql_db(&mut self, root: Node, src: &[u8]) {
+    pub(super) fn check_sql_db(&mut self, root: Node, src: &[u8]) {
         for m in match_pattern(QUERY_SQL_DB, root, src) {
             let method = m
                 .iter()
@@ -228,7 +228,7 @@ impl GolangTreeSitter<'_> {
 
     // ── GORM ───
 
-    pub(super)fn check_gorm(&mut self, root: Node, src: &[u8]) {
+    pub(super) fn check_gorm(&mut self, root: Node, src: &[u8]) {
         // string concat: db.Where("id = " + val)
         for m in match_pattern(QUERY_GORM_CONCAT, root, src) {
             if let Some((_, snippet, line, _)) = m.iter().find(|(n, ..)| n == "snippet") {

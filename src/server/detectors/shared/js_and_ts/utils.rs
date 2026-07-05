@@ -1,4 +1,4 @@
-use oxc_ast::ast::{Expression};
+use oxc_ast::ast::Expression;
 
 pub fn is_secret_name(name: &str) -> bool {
     const KEYWORDS: &[&str] = &[
@@ -44,7 +44,6 @@ pub fn is_dangerous_call(name: &str) -> bool {
     )
 }
 
-
 pub fn contains_sql_keyword(expr: &Expression) -> bool {
     match expr {
         Expression::TemplateLiteral(t) => {
@@ -57,9 +56,7 @@ pub fn contains_sql_keyword(expr: &Expression) -> bool {
         Expression::BinaryExpression(bin) => {
             contains_sql_keyword(&bin.left) || contains_sql_keyword(&bin.right)
         }
-        Expression::StringLiteral(s) => {
-            has_sql_keyword(&s.value)
-        }
+        Expression::StringLiteral(s) => has_sql_keyword(&s.value),
         _ => false,
     }
 }
@@ -76,7 +73,6 @@ fn has_sql_keyword(s: &str) -> bool {
         || trimmed.contains(" WHERE ")
         || trimmed.contains(" FROM ")
 }
-
 
 pub fn contains_dynamic_value(expr: &Expression) -> bool {
     match expr {

@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests {
-    use crate::server::detectors::{JavaScriptScanner,Scanner};
+    use crate::server::detectors::{JavaScriptScanner, Scanner};
     use crate::server::models::findings::VulnerabilityType;
 
     // declare once, use everywhere
-    static SCANNER: JavaScriptScanner = JavaScriptScanner{};
+    static SCANNER: JavaScriptScanner = JavaScriptScanner {};
 
     // =========================================================
     // HARDCODED SECRETS
@@ -182,7 +182,7 @@ mod tests {
 
     #[test]
     fn skip_sql_in_plain_string() {
-        // hardcoded SQL string passed directly 
+        // hardcoded SQL string passed directly
         let code = r#"
             db.query("SELECT * FROM users WHERE id = 1");
         "#;

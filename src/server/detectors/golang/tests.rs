@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::server::detectors::{GolangScanner, Scanner};
-    use crate::server::models::findings::{self, VulnerabilityType};
+    use crate::server::models::findings::VulnerabilityType;
 
     static SCANNER: GolangScanner = GolangScanner;
 
@@ -67,7 +67,7 @@ mod tests {
         "#;
 
         let findings = SCANNER.scan(code, "test.go");
-  
+
         assert!(findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::SQLInjection));
@@ -76,25 +76,25 @@ mod tests {
     #[test]
     fn detects_sql_injection_from_user_input() {
         let code = r#"
-package main
+            package main
 
-import (
-    "database/sql"
-    "fmt"
-    "net/http"
-)
+            import (
+                "database/sql"
+                "fmt"
+                "net/http"
+            )
 
-func users(db *sql.DB, r *http.Request) {
-    id := r.URL.Query().Get("id")
+            func users(db *sql.DB, r *http.Request) {
+                id := r.URL.Query().Get("id")
 
-    query := fmt.Sprintf(
-        "SELECT * FROM users WHERE id = '%s'",
-        id,
-    )
+                query := fmt.Sprintf(
+                    "SELECT * FROM users WHERE id = '%s'",
+                    id,
+                )
 
-    db.Query(query)
-}
-"#;
+                db.Query(query)
+            }
+        "#;
 
         let findings = SCANNER.scan(code, "test.go");
 
@@ -106,23 +106,23 @@ func users(db *sql.DB, r *http.Request) {
     #[test]
     fn detects_sql_injection_with_query_context() {
         let code = r#"
-package main
+            package main
 
-import (
-    "context"
-    "database/sql"
-    "fmt"
-)
+            import (
+                "context"
+                "database/sql"
+                "fmt"
+            )
 
-func query(ctx context.Context, db *sql.DB, table string) {
-    q := fmt.Sprintf(
-        "SELECT * FROM %s",
-        table,
-    )
+            func query(ctx context.Context, db *sql.DB, table string) {
+                q := fmt.Sprintf(
+                    "SELECT * FROM %s",
+                    table,
+                )
 
-    db.QueryContext(ctx, q)
-}
-"#;
+                db.QueryContext(ctx, q)
+            }
+        "#;
 
         let findings = SCANNER.scan(code, "test.go");
 
@@ -170,37 +170,37 @@ func query(ctx context.Context, db *sql.DB, table string) {
     #[test]
     fn secure_go_code_has_no_findings() {
         let code = r#"
-package main
+            package main
 
-import (
-    "database/sql"
-    "os"
-    "os/exec"
-    "path/filepath"
-)
+            import (
+                "database/sql"
+                "os"
+                "os/exec"
+                "path/filepath"
+            )
 
-func main(db *sql.DB) {
-    // environment secret
-    password := os.Getenv("DB_PASSWORD")
+            func main(db *sql.DB) {
+                // environment secret
+                password := os.Getenv("DB_PASSWORD")
 
-    // parameterized query
-    db.Query(
-        "SELECT * FROM users WHERE id = ?",
-        42,
-    )
+                // parameterized query
+                db.Query(
+                    "SELECT * FROM users WHERE id = ?",
+                    42,
+                )
 
-    // safe path construction
-    path := filepath.Join("/var/app", "logs")
+                // safe path construction
+                path := filepath.Join("/var/app", "logs")
 
-    // safe file read
-    os.ReadFile(path)
+                // safe file read
+                os.ReadFile(path)
 
-    // fixed command invocation
-    exec.Command("ls", "-la")
+                // fixed command invocation
+                exec.Command("ls", "-la")
 
-    _ = password
-}
-"#;
+                _ = password
+            }
+        "#;
 
         let findings = SCANNER.scan(code, "test.go");
         assert!(findings.is_empty());

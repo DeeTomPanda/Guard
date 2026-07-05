@@ -35,7 +35,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                                         &value,
                                         prop.span().start as usize,
                                         VulnerabilityType::HardcodedSecret,
-                                        Severity::Critical
+                                        Severity::Critical,
                                     );
                                 }
                             }
@@ -55,7 +55,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                                 &value,
                                 init.span().start as usize,
                                 VulnerabilityType::HardcodedSecret,
-                                Severity::Critical
+                                Severity::Critical,
                             );
                         }
                     }

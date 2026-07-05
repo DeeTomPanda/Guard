@@ -1,8 +1,8 @@
-use crate::server::detectors::shared::common_parser::{CodeVisitor,parse_to_ast};
+use crate::server::detectors::shared::common_parser::{parse_to_ast, CodeVisitor};
 use crate::server::detectors::Scanner;
-use oxc::ast_visit::Visit;
 use crate::Findings;
 use oxc::allocator::Allocator;
+use oxc::ast_visit::Visit;
 
 pub struct TypeScriptScanner;
 

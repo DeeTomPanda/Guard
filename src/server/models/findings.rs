@@ -9,7 +9,7 @@ pub enum VulnerabilityType {
     SQLInjection,
     UnsafeTypeAssertion,
     UnsafeCodeExecution,
-    UnsafeFileOperation
+    UnsafeFileOperation,
 }
 #[derive(Serialize, Deserialize, PartialEq)]
 pub enum Severity {
@@ -19,7 +19,6 @@ pub enum Severity {
     Low,
 }
 
-
 impl VulnerabilityType {
     pub fn rule_id(&self) -> &'static str {
         match self {
@@ -27,8 +26,8 @@ impl VulnerabilityType {
             VulnerabilityType::SQLInjection => "sql-injection",
             VulnerabilityType::HardcodedSecret => "hardcoded-secret",
             VulnerabilityType::UnsafeTypeAssertion => "unsafe-type-assertion",
-            VulnerabilityType::UnsafeCodeExecution=>"unsafe-code-execution",
-            VulnerabilityType::UnsafeFileOperation=>"unsafe-file-operation"
+            VulnerabilityType::UnsafeCodeExecution => "unsafe-code-execution",
+            VulnerabilityType::UnsafeFileOperation => "unsafe-file-operation",
         }
     }
 
@@ -38,12 +37,11 @@ impl VulnerabilityType {
             VulnerabilityType::SQLInjection => "SQL Injection",
             VulnerabilityType::HardcodedSecret => "Hardcoded Secret",
             VulnerabilityType::UnsafeTypeAssertion => "Unsafe Type Assertion",
-            VulnerabilityType::UnsafeCodeExecution=>"Unsafe Code Execution",
-            VulnerabilityType::UnsafeFileOperation=>"Unsafe File Operation"
+            VulnerabilityType::UnsafeCodeExecution => "Unsafe Code Execution",
+            VulnerabilityType::UnsafeFileOperation => "Unsafe File Operation",
         }
     }
 }
-
 
 pub fn severity_order(s: &Severity) -> u8 {
     match s {
@@ -62,8 +60,8 @@ impl Debug for VulnerabilityType {
             VulnerabilityType::HardcodedSecret => "Hardcoded Secret",
             VulnerabilityType::SQLInjection => "SQL Injection",
             VulnerabilityType::UnsafeTypeAssertion => "Potential Unsafe Assertion",
-            VulnerabilityType::UnsafeCodeExecution=>"Potential Unsafe Code Execution",
-            VulnerabilityType::UnsafeFileOperation=>"Potential Unsafe File Operation"
+            VulnerabilityType::UnsafeCodeExecution => "Potential Unsafe Code Execution",
+            VulnerabilityType::UnsafeFileOperation => "Potential Unsafe File Operation",
         };
         write!(f, "{}", vuln_str)
     }

@@ -1,4 +1,4 @@
-use crate::server::detectors::{JavaScriptScanner, Scanner, TypeScriptScanner, GolangScanner};
+use crate::server::detectors::{GolangScanner, JavaScriptScanner, Scanner, TypeScriptScanner};
 use crate::server::models::findings::Findings;
 use std::collections::HashMap;
 
@@ -33,12 +33,12 @@ impl OWASPScanner {
             None => return all_findings,
         };
 
-        let scanners = match self.scanners.get(&language) {
+        let scanner = match self.scanners.get(&language) {
             Some(d) => d,
             None => return all_findings,
         };
 
-        let findings = scanners.scan(codebase, file_path);
+        let findings = scanner.scan(codebase, file_path);
         all_findings.extend(findings);
         all_findings
     }
@@ -47,9 +47,9 @@ impl OWASPScanner {
     pub fn determine_language(file_path: &str) -> Option<Language> {
         if file_path.ends_with(".js") {
             Some(Language::JavaScript)
-        } else if file_path.ends_with(".ts"){
+        } else if file_path.ends_with(".ts") {
             Some(Language::TypeScript)
-        }else if file_path.ends_with(".py") {
+        } else if file_path.ends_with(".py") {
             Some(Language::Python)
         } else if file_path.ends_with(".java") {
             Some(Language::Java)

@@ -1,5 +1,5 @@
 use streaming_iterator::StreamingIterator;
-use tree_sitter::{Language, Node, Query, QueryCursor};
+use tree_sitter::{Node, Query, QueryCursor};
 
 fn node_text<'a>(node: Node, src: &'a [u8]) -> &'a str {
     node.utf8_text(src).unwrap_or("")
@@ -16,7 +16,6 @@ pub fn match_pattern(
     root: Node,
     src: &[u8],
 ) -> Vec<Vec<(String, String, usize, usize)>> {
-   
     let language = tree_sitter_go::LANGUAGE.into();
     let query = Query::new(&language, pattern).expect("invalid query");
     let mut cursor = QueryCursor::new();

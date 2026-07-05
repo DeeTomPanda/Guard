@@ -3,9 +3,9 @@ use clap::Parser;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
+use crate::server::detectors::shared::sarif::*;
 use crate::server::models::findings::Findings;
 use crate::state::AppState;
-use crate::server::detectors::shared::sarif::*;
 
 mod cli;
 mod server;
@@ -40,11 +40,6 @@ async fn main() {
             sarif,
             output,
         } => {
-            let state_clone = Arc::clone(&state);
-            tokio::spawn(async move {
-                server::start_server(state_clone).await;
-            });
-
             let scan_id = cli::scan(path, Arc::clone(&state)).await;
 
             if sarif {
@@ -53,20 +48,23 @@ async fn main() {
                     format!("guard-{}-report.sarif", timestamp)
                 });
 
-                let state_read=state.read().await;
-                if let Some(results)=state_read.results.get(&scan_id){
-                    match to_sarif_json(&results){
-                        Ok(json)=>{
-                            std::fs::write(file_path,json).unwrap();
-                        },
-                        Err(e)=>{
-                            eprintln!("fialed to serialize into SARIF: ({})",e);
+                let state_read = state.read().await;
+                if let Some(results) = state_read.results.get(&scan_id) {
+                    match to_sarif_json(&results) {
+                        Ok(json) => {
+                            std::fs::write(file_path, json).unwrap();
+                        }
+                        Err(e) => {
+                            eprintln!("fialed to serialize into SARIF: ({})", e);
                         }
                     }
-
                 }
-
+                return;
             } else {
+                let state_clone = Arc::clone(&state);
+                tokio::spawn(async move {
+                    server::start_server(state_clone).await;
+                });
                 // trigger the browser to open the results page
                 open::that(format!("http://localhost:3000/#/results/{}", scan_id)).unwrap();
             }

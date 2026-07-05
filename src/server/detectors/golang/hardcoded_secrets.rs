@@ -1,6 +1,6 @@
+use super::{go_scanner::GolangTreeSitter, utils::match_pattern};
 use crate::server::models::findings::{Severity, VulnerabilityType};
 use tree_sitter::Node;
-use super::{go_scanner::GolangTreeSitter, utils::match_pattern};
 
 const QUERY_SECRET_VAR: &str = r#"
 (var_declaration
@@ -26,7 +26,7 @@ const QUERY_SECRET_STRUCT: &str = r#"
 "#;
 
 impl GolangTreeSitter<'_> {
-    pub(super)fn check_secrets(&mut self, root: Node, src: &[u8]) {
+    pub(super) fn check_secrets(&mut self, root: Node, src: &[u8]) {
         for query_src in [QUERY_SECRET_VAR, QUERY_SECRET_CONST, QUERY_SECRET_STRUCT] {
             for m in match_pattern(query_src, root, src) {
                 if let Some((_, snippet, line, _)) = m.iter().find(|(n, ..)| n == "snippet") {

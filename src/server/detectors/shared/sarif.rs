@@ -1,7 +1,7 @@
 use crate::server::models::findings::*;
 use serde_sarif::sarif::{
-    ArtifactLocation, Location, Message, PhysicalLocation, Region,
-    ReportingDescriptor, Result as SarifResult, Run, Sarif, Tool, ToolComponent,
+    ArtifactLocation, Location, Message, PhysicalLocation, Region, ReportingDescriptor,
+    Result as SarifResult, Run, Sarif, Tool, ToolComponent,
 };
 
 pub fn to_sarif(all_findings: &[FinalFindings]) -> Sarif {
@@ -18,7 +18,7 @@ pub fn to_sarif(all_findings: &[FinalFindings]) -> Sarif {
                     ReportingDescriptor::builder()
                         .id(rule_id.to_string())
                         .name(finding.vuln_type.rule_name().to_string())
-                        .build()
+                        .build(),
                 );
             }
 
@@ -32,23 +32,19 @@ pub fn to_sarif(all_findings: &[FinalFindings]) -> Sarif {
                         .artifact_location(
                             ArtifactLocation::builder()
                                 .uri(finding.file_path.clone())
-                                .build()
+                                .build(),
                         )
                         .region(region)
-                        .build()
+                        .build(),
                 )
                 .build();
 
             results.push(
                 SarifResult::builder()
                     .rule_id(rule_id.to_string())
-                    .message(
-                        Message::builder()
-                            .text(finding.snippet.clone())
-                            .build()
-                    )
+                    .message(Message::builder().text(finding.snippet.clone()).build())
                     .locations(vec![location])
-                    .build()
+                    .build(),
             );
         }
     }
@@ -56,7 +52,7 @@ pub fn to_sarif(all_findings: &[FinalFindings]) -> Sarif {
     let driver = ToolComponent::builder()
         .name("Guard".to_string())
         .rules(rules)
-        .build() ;
+        .build();
 
     let tool = Tool::builder().driver(driver).build();
 
@@ -66,7 +62,6 @@ pub fn to_sarif(all_findings: &[FinalFindings]) -> Sarif {
         .version("2.1.0".to_string())
         .runs(vec![run])
         .build()
-        
 }
 
 pub fn to_sarif_json(all_findings: &[FinalFindings]) -> Result<String, serde_json::Error> {

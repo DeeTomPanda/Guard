@@ -3,12 +3,12 @@ use crate::server::{detectors::Scanner, models::findings::Findings};
 
 pub struct GolangScanner;
 
-pub (super) struct GolangTreeSitter<'a> {
+pub(super) struct GolangTreeSitter<'a> {
     findings: Vec<Findings>,
     file_path: &'a str,
 }
 
-impl Scanner for GolangScanner{
+impl Scanner for GolangScanner {
     fn scan(&self, code: &str, file_path: &str) -> Vec<Findings> {
         let mut tree_sitter = GolangTreeSitter::new(file_path);
         tree_sitter.analyze(code);
@@ -55,7 +55,6 @@ impl<'a> GolangTreeSitter<'a> {
         self.check_syscall(root, bytes);
         // check for unsafe file operations
         self.check_file_ops(root, bytes);
-
     }
 
     pub(super) fn report(
@@ -66,9 +65,10 @@ impl<'a> GolangTreeSitter<'a> {
         severity: Severity,
     ) {
         // avoid duplicate findings for the same vuln type, line and snippet
-        let exists = self.findings.iter().any(|f| {
-            f.vuln_type == vuln_type && f.line_no == line && f.snippet == snippet
-        });
+        let exists = self
+            .findings
+            .iter()
+            .any(|f| f.vuln_type == vuln_type && f.line_no == line && f.snippet == snippet);
 
         if exists {
             return;
