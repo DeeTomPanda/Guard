@@ -1,18 +1,20 @@
 use ignore::WalkBuilder;
 use rayon::prelude::*;
-use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
-use crate::server::models::calls::CallSite;
-use crate::server::service::OWASPScanner;
+use crate::server::models::resolution::{self, ResolutionTable};
 use crate::AppState;
 use crate::{
-    server::models::{
-        calls::CallTable,
-        findings::{severity_order, FinalFindings},
-        symbols::{Symbol, SymbolTable},
+    server::{
+        models::{
+            calls::{CallSite, CallTable},
+            findings::{severity_order, FinalFindings},
+            symbols::{Symbol, SymbolTable},
+        },
+        resolution::resolve::*,
+        service::OWASPScanner,
     },
     state::ScanData,
 };
@@ -81,28 +83,49 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
 
     // flatten symbols into SymbolTable
 
-    let mut symbol_table=SymbolTable::new();
+    let mut symbol_table = SymbolTable::new();
     for symbols in all_symbols {
         for symbol in symbols {
             symbol_table.insert(symbol.file.clone(), symbol);
         }
     }
 
+    symbol_table.build_index();
+
     // flatten calls into CallTable
-    let mut call_table=CallTable::new();
+    let mut call_table = CallTable::new();
     for calls in all_calls {
         for call in calls {
-             call_table.insert(call.file.clone(), call);
+            call_table.insert(call.file.clone(), call);
         }
     }
 
+    // let resolution_table=ResolutionTable { calls: vec![] };
+    let resolution_table = Resolver::resolve(&symbol_table, &call_table);
+
+    // for resolved in &resolution_table.calls {
+    //     println!(
+    //         "{}() caller: {}",
+    //         resolved.call.callee, resolved.call.caller
+    //     );
+    //     for arg in &resolved.arguments {
+    //         println!(
+    //             "  arg: {} → symbol: {:?} → assigned: {:?}",
+    //             arg.raw,
+    //             arg.symbol.as_ref().map(|s| &s.name),
+    //             arg.assigned_from
+    //         );
+    //     }
+    // }
+
     let scan_id = Uuid::new_v4().to_string();
     let mut state = state.write().await;
-   
+
     let scan_data = ScanData {
         findings: all_findings,
         symbol_table,
-        call_table
+        call_table,
+        resolution_table,
     };
 
     state.results.insert(scan_id.clone(), scan_data);

@@ -10,6 +10,7 @@ pub mod detectors;
 pub mod handlers;
 pub mod models;
 pub mod service;
+pub mod resolution;
 
 pub async fn start_server(state: Arc<RwLock<AppState>>) {
     println!("Starting server on http://127.0.0.1:3000");

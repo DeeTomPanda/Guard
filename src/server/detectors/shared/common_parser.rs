@@ -106,7 +106,12 @@ impl<'a> CodeVisitor<'a> {
 impl<'a> Visit<'a> for CodeVisitor<'a> {
     // let var a=1;
     fn visit_variable_declarator(&mut self, node: &VariableDeclarator<'a>) {
-        // Get variable name from AST first
+        let assigned_from = node.init.as_ref().map(|init| {
+            let start = init.span().start as usize;
+            let end = init.span().end as usize;
+            self.source_text[start..end].to_string()
+        });
+        // get variable name from AST first
         if let BindingPattern::BindingIdentifier(ident) = &node.id {
             self.symbols.push(Symbol {
                 name: ident.name.to_string(),
@@ -115,6 +120,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                 line: self.span_to_line(node.span.start as usize),
                 column: node.span.start as usize,
                 scope: self.current_scope(),
+                assigned_from,
             });
 
             // unwrap `satisfies` or `as` or `!` assertions before checking the shape
@@ -225,6 +231,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                                     line: self.span_to_line(node.span.start as usize),
                                     column: node.span.start as usize,
                                     scope: self.current_scope(),
+                                    assigned_from:None
                                 });
                             }
                         }
@@ -346,6 +353,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                 line: self.span_to_line(node.span.start as usize),
                 column: node.span.start as usize,
                 scope,
+                assigned_from:None
             });
 
             // push scope before walking children
@@ -361,6 +369,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                         line: self.span_to_line(param.span.start as usize),
                         column: param.span.start as usize,
                         scope: self.current_scope(),
+                        assigned_from:None
                     });
                 }
             }
@@ -385,6 +394,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                 line: self.span_to_line(node.span.start as usize),
                 column: node.span.start as usize,
                 scope: self.current_scope(),
+                assigned_from:None
             });
 
             self.scope_stack.push(name);
@@ -411,6 +421,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                 line: self.span_to_line(node.span.start as usize),
                 column: node.span.start as usize,
                 scope: self.current_scope(),
+                assigned_from:None
             });
 
             // push method name onto scope
@@ -426,6 +437,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                         line: self.span_to_line(param.span.start as usize),
                         column: param.span.start as usize,
                         scope: self.current_scope(), // now inside method scope
+                        assigned_from:None
                     });
                 }
             }
@@ -460,6 +472,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                     line: self.span_to_line(node.span.start as usize),
                     column: node.span.start as usize,
                     scope: "global".to_string(), // imports are always global
+                    assigned_from:None
                 });
             }
         }

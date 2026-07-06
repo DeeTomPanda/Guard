@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+#[derive(Clone)]
 pub struct CallSite {
     pub callee: String,         // function name
     pub object: Option<String>, // e.g. db.query, db is object

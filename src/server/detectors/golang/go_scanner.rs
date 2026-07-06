@@ -65,6 +65,7 @@ impl<'a> GolangTreeSitter<'a> {
                         line,
                         column: name_node.start_position().column,
                         scope: self.current_scope(),
+                        assigned_from: None,
                     });
 
                     self.scope_stack.push(name);
@@ -115,6 +116,7 @@ impl<'a> GolangTreeSitter<'a> {
                         line,
                         column: name_node.start_position().column,
                         scope: receiver_type.clone(),
+                        assigned_from: None,
                     });
 
                     self.scope_stack.push(receiver_type);
@@ -133,6 +135,12 @@ impl<'a> GolangTreeSitter<'a> {
 
             // short variable declaration: x := something
             "short_var_declaration" => {
+                // get r.h.s text
+                let assigned_from = node
+                    .child_by_field_name("right")
+                    .and_then(|r| r.utf8_text(code_bytes).ok())
+                    .map(|s| s.to_string());
+
                 if let Some(left) = node.child_by_field_name("left") {
                     let mut cursor = left.walk();
                     for child in left.children(&mut cursor) {
@@ -145,6 +153,7 @@ impl<'a> GolangTreeSitter<'a> {
                                 line: child.start_position().row + 1,
                                 column: child.start_position().column,
                                 scope: self.current_scope(),
+                                assigned_from: assigned_from.clone(),
                             });
                         }
                     }
@@ -154,6 +163,12 @@ impl<'a> GolangTreeSitter<'a> {
 
             // var declaration: var x int = something
             "var_declaration" => {
+                // get r.h.s text
+                let assigned_from = node
+                    .child_by_field_name("right")
+                    .and_then(|r| r.utf8_text(code_bytes).ok())
+                    .map(|s| s.to_string());
+
                 let mut cursor = node.walk();
                 for child in node.children(&mut cursor) {
                     if child.kind() == "var_spec" {
@@ -166,6 +181,7 @@ impl<'a> GolangTreeSitter<'a> {
                                 line: name_node.start_position().row + 1,
                                 column: name_node.start_position().column,
                                 scope: self.current_scope(),
+                                assigned_from: assigned_from.clone(),
                             });
                         }
                     }
@@ -222,11 +238,81 @@ impl<'a> GolangTreeSitter<'a> {
                                     line: name_node.start_position().row + 1,
                                     column: name_node.start_position().column,
                                     scope: "global".to_string(),
+                                    assigned_from: None,
                                 });
                             }
                         }
                     }
                 }
+            }
+
+            // const declarations
+            "const_declaration" => {
+                let mut cursor = node.walk();
+                for child in node.children(&mut cursor) {
+                    if child.kind() == "const_spec" {
+                        let assigned_from = child
+                            .child_by_field_name("value")
+                            .and_then(|v| v.utf8_text(code_bytes).ok())
+                            .map(|s| s.to_string());
+
+                        if let Some(name_node) = child.child_by_field_name("name") {
+                            let name = name_node.utf8_text(code_bytes).unwrap_or("").to_string();
+                            self.symbols.push(Symbol {
+                                name,
+                                kind: SymbolKind::Variable,
+                                file: self.file_path.to_string(),
+                                line: name_node.start_position().row + 1,
+                                column: name_node.start_position().column,
+                                scope: self.current_scope(),
+                                assigned_from,
+                            });
+                        }
+                    }
+                }
+                self.walk_children(node, code_bytes);
+            }
+
+            // reassignment: x = something
+            "assignment_statement" => {
+                let left = node.child_by_field_name("left");
+                let right = node.child_by_field_name("right");
+
+                let assigned_from = right
+                    .and_then(|r| r.utf8_text(code_bytes).ok())
+                    .map(|s| s.to_string());
+
+                if let Some(left_node) = left {
+                    let mut cursor = left_node.walk();
+                    for child in left_node.children(&mut cursor) {
+                        if child.kind() == "identifier" {
+                            let name = child.utf8_text(code_bytes).unwrap_or("").to_string();
+                            let current_scope = self.current_scope();
+
+                            // update existing symbol's assigned_from
+                            // or push new one if not found
+                            let existing = self
+                                .symbols
+                                .iter_mut()
+                                .find(|s| s.name == name && s.scope == current_scope);
+
+                            if let Some(sym) = existing {
+                                sym.assigned_from = assigned_from.clone();
+                            } else {
+                                self.symbols.push(Symbol {
+                                    name,
+                                    kind: SymbolKind::Variable,
+                                    file: self.file_path.to_string(),
+                                    line: child.start_position().row + 1,
+                                    column: child.start_position().column,
+                                    scope: current_scope.clone(),
+                                    assigned_from: assigned_from.clone(),
+                                });
+                            }
+                        }
+                    }
+                }
+                self.walk_children(node, code_bytes);
             }
 
             "call_expression" => {
@@ -325,6 +411,7 @@ impl<'a> GolangTreeSitter<'a> {
                         line: name_node.start_position().row + 1,
                         column: name_node.start_position().column,
                         scope: self.current_scope(),
+                        assigned_from: None,
                     });
                 }
             }
@@ -342,6 +429,7 @@ impl<'a> GolangTreeSitter<'a> {
                 line: path_node.start_position().row + 1,
                 column: path_node.start_position().column,
                 scope: "global".to_string(),
+                assigned_from: None,
             });
         }
     }
