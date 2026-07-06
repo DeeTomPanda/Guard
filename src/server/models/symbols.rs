@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+
 #[derive(Debug)]
 pub enum SymbolKind {
     Function,
@@ -21,4 +22,19 @@ pub struct Symbol {
 
 pub struct SymbolTable {
     pub symbols: HashMap<String, Vec<Symbol>>,
+}
+
+impl SymbolTable {
+    pub fn new() -> Self {
+        Self {
+            symbols: HashMap::new(),
+        }
+    }
+
+    pub fn insert(&mut self, file: String, symbol: Symbol) {
+        self.symbols
+            .entry(file)
+            .or_insert_with(Vec::new)
+            .push(symbol);
+    }
 }

@@ -80,36 +80,29 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
     }
 
     // flatten symbols into SymbolTable
-    let mut symbol_map: HashMap<String, Vec<Symbol>> = HashMap::new();
+
+    let mut symbol_table=SymbolTable::new();
     for symbols in all_symbols {
         for symbol in symbols {
-            symbol_map
-                .entry(symbol.file.clone())
-                .or_insert_with(Vec::new)
-                .push(symbol);
+            symbol_table.insert(symbol.file.clone(), symbol);
         }
     }
 
     // flatten calls into CallTable
-    let mut call_map: HashMap<String, Vec<CallSite>> = HashMap::new();
+    let mut call_table=CallTable::new();
     for calls in all_calls {
         for call in calls {
-            call_map
-                .entry(call.file.clone())
-                .or_insert_with(Vec::new)
-                .push(call);
+             call_table.insert(call.file.clone(), call);
         }
     }
 
     let scan_id = Uuid::new_v4().to_string();
     let mut state = state.write().await;
-    let symbol_table = SymbolTable {
-        symbols: symbol_map,
-    };
+   
     let scan_data = ScanData {
         findings: all_findings,
         symbol_table,
-        call_table: CallTable { calls: call_map },
+        call_table
     };
 
     state.results.insert(scan_id.clone(), scan_data);
