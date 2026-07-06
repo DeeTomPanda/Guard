@@ -5,7 +5,7 @@ pub struct CallSite {
     pub callee: String,         // function name
     pub object: Option<String>, // e.g. db.query, db is object
     pub arguments: Vec<String>,
-    pub caller: String, // not to be confused with calle
+    pub caller: String, // not to be confused with callee
     pub file: String,
     pub line: usize,
     pub column: usize,
