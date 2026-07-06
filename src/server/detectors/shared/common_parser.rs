@@ -1,5 +1,6 @@
 use super::js_and_ts::utils::*;
 use crate::server::models::{
+    calls::CallSite,
     findings::{Severity, VulnerabilityType},
     results::ScanResult,
     symbols::{Symbol, SymbolKind},
@@ -16,20 +17,21 @@ pub struct CodeVisitor<'a> {
     pub file_path: &'a str,
     pub source_text: &'a str,
     pub symbols: Vec<Symbol>,
+    pub calls: Vec<CallSite>,
     scope_stack: Vec<String>,
-    line_starts:Vec<usize>
+    line_starts: Vec<usize>,
 }
 
 impl<'a> CodeVisitor<'a> {
     pub fn new(file_path: &'a str, source_text: &'a str) -> Self {
         // feault start for all files
-        let mut line_starts=vec![0];
+        let mut line_starts = vec![0];
 
         // loop through entire file bytes for start
 
-        for (i,c) in source_text.char_indices(){
-            if c=='\n'{
-                line_starts.push(i+1);
+        for (i, c) in source_text.char_indices() {
+            if c == '\n' {
+                line_starts.push(i + 1);
             }
         }
 
@@ -39,7 +41,8 @@ impl<'a> CodeVisitor<'a> {
             findings: vec![],
             symbols: vec![],
             scope_stack: vec![],
-            line_starts
+            calls: vec![],
+            line_starts,
         }
     }
 
@@ -79,7 +82,7 @@ impl<'a> CodeVisitor<'a> {
         self.findings.push(Findings {
             vuln_type,
             line_no: line.to_string(),
-            col_no:col.to_string(),
+            col_no: col.to_string(),
             file_path: self.file_path.to_string(),
             snippet: snippet.to_string(),
             severity,
@@ -94,6 +97,7 @@ impl<'a> CodeVisitor<'a> {
         ScanResult {
             findings: self.findings,
             symbols: self.symbols,
+            calls: self.calls,
         }
     }
 }
@@ -182,32 +186,81 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
         // unwrap (eval as any)(...) to eval(...) do this FIRST, unconditionally
         let callee = unwrap_ts_expression(&node.callee);
 
-        if let Expression::Identifier(ident) = callee {
-            let name = ident.name.as_str();
+        let arguments: Vec<String> = node
+            .arguments
+            .iter()
+            .filter_map(|arg| arg.as_expression())
+            .map(|expr| {
+                let start = expr.span().start as usize;
+                let end = expr.span().end as usize;
+                self.source_text[start..end].to_string()
+            })
+            .collect();
 
-            if is_dangerous_call(name) {
-                self.report(name, node.span(), VulnerabilityType::Eval, Severity::High);
-            }
+        let (line, col) = self.offset_to_line_col(node.span().start as usize);
 
-            // CommonJS imports via require()
-            // e.g. module.exports = require('./lib/express');
-            // var debug = require('debug');
-            if name == "require" {
-                if let Some(first_arg) = node.arguments.first() {
-                    if let Some(expr) = first_arg.as_expression() {
-                        if let Expression::StringLiteral(lit) = expr {
-                            self.symbols.push(Symbol {
-                                name: lit.value.to_string(),
-                                kind: SymbolKind::Import,
-                                file: self.file_path.to_string(),
-                                line: self.span_to_line(node.span.start as usize),
-                                column: node.span.start as usize,
-                                scope: self.current_scope(),
-                            });
+        match callee {
+            /*
+               save(y)
+               call(a)
+            */
+            Expression::Identifier(ident) => {
+                let name = ident.name.as_str();
+
+                if is_dangerous_call(name) {
+                    self.report(name, node.span(), VulnerabilityType::Eval, Severity::High);
+                }
+
+                // CommonJS imports via require()
+                // e.g. module.exports = require('./lib/express');
+                // var debug = require('debug');
+                if name == "require" {
+                    if let Some(first_arg) = node.arguments.first() {
+                        if let Some(expr) = first_arg.as_expression() {
+                            if let Expression::StringLiteral(lit) = expr {
+                                self.symbols.push(Symbol {
+                                    name: lit.value.to_string(),
+                                    kind: SymbolKind::Import,
+                                    file: self.file_path.to_string(),
+                                    line: self.span_to_line(node.span.start as usize),
+                                    column: node.span.start as usize,
+                                    scope: self.current_scope(),
+                                });
+                            }
                         }
                     }
                 }
+
+                self.calls.push(CallSite {
+                    callee: name.to_string(),
+                    object: None,
+                    arguments,
+                    caller: self.current_scope(),
+                    file: self.file_path.to_string(),
+                    line,
+                    column: col,
+                });
             }
+
+            // method call: db.query(x), fs.readFile(x)
+            Expression::StaticMemberExpression(member) => {
+                let callee_name = member.property.name.to_string();
+                let object_name = match &member.object {
+                    Expression::Identifier(id) => Some(id.name.to_string()),
+                    _ => None,
+                };
+
+                self.calls.push(CallSite {
+                    callee: callee_name,
+                    object: object_name,
+                    arguments,
+                    caller: self.current_scope(),
+                    file: self.file_path.to_string(),
+                    line,
+                    column: col,
+                });
+            }
+            _ => {}
         }
 
         // sql injection check

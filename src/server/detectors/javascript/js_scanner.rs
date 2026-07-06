@@ -19,7 +19,8 @@ impl Scanner for JavaScriptScanner {
                 eprintln!("Parse error: {}", e);
                 return ScanResult{
                     findings:vec![],
-                    symbols:vec![]
+                    symbols:vec![],
+                    calls:vec![]
                 };
             }
         };

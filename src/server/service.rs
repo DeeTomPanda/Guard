@@ -28,9 +28,10 @@ impl OWASPScanner {
     }
 
     pub fn scan(&self, codebase: &str, file_path: &str) -> ScanResult {
-        let  dummy=ScanResult{
-            findings:Vec::new(),
-            symbols:Vec::new()
+        let dummy = ScanResult {
+            findings: Vec::new(),
+            symbols: Vec::new(),
+            calls: Vec::new(),
         };
         let language = match Self::determine_language(file_path) {
             Some(lang) => lang,

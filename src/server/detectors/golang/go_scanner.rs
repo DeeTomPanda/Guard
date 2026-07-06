@@ -2,6 +2,7 @@ use crate::server::models::findings::{Severity, VulnerabilityType};
 use crate::server::{
     detectors::Scanner,
     models::{
+        calls::CallSite,
         findings::Findings,
         results::ScanResult,
         symbols::{Symbol, SymbolKind},
@@ -15,6 +16,7 @@ pub(super) struct GolangTreeSitter<'a> {
     symbols: Vec<Symbol>,
     file_path: &'a str,
     scope_stack: Vec<String>,
+    calls: Vec<CallSite>,
 }
 
 impl Scanner for GolangScanner {
@@ -27,20 +29,20 @@ impl Scanner for GolangScanner {
 
 impl<'a> GolangTreeSitter<'a> {
     pub fn new(file_path: &'a str) -> Self {
-        // for (i,ch) in
         Self {
             findings: Vec::new(),
             file_path,
             symbols: Vec::new(),
             scope_stack: Vec::new(),
+            calls: Vec::new(),
         }
     }
 
-    fn current_scope(scope_stack: &Vec<String>) -> String {
-        if scope_stack.is_empty() {
+    fn current_scope(&self) -> String {
+        if self.scope_stack.is_empty() {
             "global".to_string()
         } else {
-            scope_stack.join("::")
+            self.scope_stack.join("::")
         }
     }
 
@@ -62,7 +64,7 @@ impl<'a> GolangTreeSitter<'a> {
                         file: self.file_path.to_string(),
                         line,
                         column: name_node.start_position().column,
-                        scope: Self::current_scope(&self.scope_stack),
+                        scope: self.current_scope(),
                     });
 
                     self.scope_stack.push(name);
@@ -85,11 +87,26 @@ impl<'a> GolangTreeSitter<'a> {
                     // get receiver type for scope
                     let receiver_type = node
                         .child_by_field_name("receiver")
-                        .and_then(|r| r.child_by_field_name("type"))
-                        .and_then(|t| t.utf8_text(code_bytes).ok())
-                        .unwrap_or("unknown")
-                        .trim_start_matches('*') // remove pointer prefix
-                        .to_string();
+                        .and_then(|r| {
+                            // bind to variable so cursor lifetime is valid
+                            let mut cursor = r.walk();
+                            let param = r
+                                .children(&mut cursor)
+                                .find(|c| c.kind() == "parameter_declaration");
+
+                            param
+                                .and_then(|p| p.child_by_field_name("type"))
+                                .and_then(|t| {
+                                    if t.kind() == "pointer_type" {
+                                        t.child(1)
+                                            .and_then(|inner| inner.utf8_text(code_bytes).ok())
+                                    } else {
+                                        t.utf8_text(code_bytes).ok()
+                                    }
+                                })
+                                .map(|s| s.trim_start_matches('*').to_string())
+                        })
+                        .unwrap_or("unknown".to_string());
 
                     self.symbols.push(Symbol {
                         name: name.clone(),
@@ -127,7 +144,7 @@ impl<'a> GolangTreeSitter<'a> {
                                 file: self.file_path.to_string(),
                                 line: child.start_position().row + 1,
                                 column: child.start_position().column,
-                                scope: Self::current_scope(&self.scope_stack),
+                                scope: self.current_scope(),
                             });
                         }
                     }
@@ -148,7 +165,7 @@ impl<'a> GolangTreeSitter<'a> {
                                 file: self.file_path.to_string(),
                                 line: name_node.start_position().row + 1,
                                 column: name_node.start_position().column,
-                                scope: Self::current_scope(&self.scope_stack),
+                                scope: self.current_scope(),
                             });
                         }
                     }
@@ -161,10 +178,16 @@ impl<'a> GolangTreeSitter<'a> {
                 for child in node.children(&mut cursor) {
                     match child.kind() {
                         // single import
+                        // import import_1
                         "import_spec" => {
                             self.collect_import_spec(child, code_bytes);
                         }
                         // grouped imports
+                        /*
+                        import(
+                            import_1
+                            import_2
+                        ) */
                         "import_spec_list" => {
                             let mut list_cursor = child.walk();
                             for spec in child.children(&mut list_cursor) {
@@ -206,6 +229,75 @@ impl<'a> GolangTreeSitter<'a> {
                 }
             }
 
+            "call_expression" => {
+                let function_node = node.child_by_field_name("function");
+                let args_node = node.child_by_field_name("arguments");
+
+                // extract arguments
+                let arguments: Vec<String> = args_node
+                    .map(|args| {
+                        let mut cursor = args.walk();
+                        args.children(&mut cursor)
+                        // strip away ',' and parantheses!
+                            .filter(|c| c.kind() != "," && c.kind() != "(" && c.kind() != ")")
+                            .map(|c| c.utf8_text(code_bytes).unwrap_or("").to_string())
+                            .collect()
+                    })
+                    .unwrap_or_default();
+
+                if let Some(func) = function_node {
+                    match func.kind() {
+                        // plain call: save(x)
+                        "identifier" => {
+                            let callee = func.utf8_text(code_bytes).unwrap_or("").to_string();
+                            self.calls.push(CallSite {
+                                callee,
+                                object: None,
+                                arguments,
+                                caller: self.current_scope(),
+                                file: self.file_path.to_string(),
+                                line: func.start_position().row + 1,
+                                column: func.start_position().column,
+                            });
+                        }
+
+                        // method call: db.Query(x)
+                        "selector_expression" => {
+                            let callee = func
+                                .child_by_field_name("field")
+                                .and_then(|f| f.utf8_text(code_bytes).ok())
+                                .unwrap_or("")
+                                .to_string();
+
+                            let object = func.child_by_field_name("operand").map(|o| {
+                                // if operand is itself a selector (r.db), take the field
+                                // if operand is plain identifier (db), take it directly
+                                if o.kind() == "selector_expression" {
+                                    o.child_by_field_name("field")
+                                        .and_then(|f| f.utf8_text(code_bytes).ok())
+                                        .unwrap_or("")
+                                        .to_string()
+                                } else {
+                                    o.utf8_text(code_bytes).unwrap_or("").to_string()
+                                }
+                            });
+
+                            self.calls.push(CallSite {
+                                callee,
+                                object,
+                                arguments,
+                                caller: self.current_scope(),
+                                file: self.file_path.to_string(),
+                                line: func.start_position().row + 1,
+                                column: func.start_position().column,
+                            });
+                        }
+
+                        _ => {}
+                    }
+                }
+            }
+
             // everything else — just walk children
             _ => {
                 self.walk_children(node, code_bytes);
@@ -232,7 +324,7 @@ impl<'a> GolangTreeSitter<'a> {
                         file: self.file_path.to_string(),
                         line: name_node.start_position().row + 1,
                         column: name_node.start_position().column,
-                        scope: Self::current_scope(&self.scope_stack),
+                        scope: self.current_scope(),
                     });
                 }
             }
@@ -321,6 +413,7 @@ impl<'a> GolangTreeSitter<'a> {
         ScanResult {
             findings: self.findings,
             symbols: self.symbols,
+            calls: self.calls,
         }
     }
 

@@ -4,12 +4,13 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use uuid::Uuid;
-use walkdir::WalkDir;
 
+use crate::server::models::calls::CallSite;
 use crate::server::service::OWASPScanner;
 use crate::AppState;
 use crate::{
     server::models::{
+        calls::CallTable,
         findings::{severity_order, FinalFindings},
         symbols::{Symbol, SymbolTable},
     },
@@ -21,16 +22,16 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
     let owasp_scanner = OWASPScanner::new();
     let entries: Vec<_> = WalkBuilder::new(&path)
         .hidden(false)
-        .git_ignore(true) 
-        .git_global(true) 
+        .git_ignore(true)
+        .git_global(true)
         .git_exclude(true)
         .build()
         .filter_map(|e| e.ok())
         .filter(|e| OWASPScanner::determine_language(&e.path().to_string_lossy()).is_some())
         .collect();
 
-    // collect both findings AND symbols in parallel
-    let all_results: Vec<(FinalFindings, Vec<Symbol>)> = entries
+    // collect both findings AND symbols AND callsites in parallel
+    let all_results: Vec<(FinalFindings, Vec<Symbol>, Vec<CallSite>)> = entries
         .par_iter()
         .filter_map(|entry| {
             let path = entry.path();
@@ -49,6 +50,7 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
                             findings: scan_result.findings,
                         },
                         scan_result.symbols,
+                        scan_result.calls,
                     ))
                 }
                 Err(e) => {
@@ -61,14 +63,21 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
 
     /* after all that it would be like e.g.
         all_results = [
-        (FinalFindings { file: "express/index.js" }, vec![Symbol, Symbol]),
-        (FinalFindings { file: "express/router.js" }, vec![Symbol, Symbol]),
-        (FinalFindings { file: "express/utils.js" }, vec![Symbol]),
+        (FinalFindings { file: "express/index.js" }, vec![Symbol, Symbol], vec![CallSite, CallSite]),
+        (FinalFindings { file: "express/router.js" }, vec![Symbol, Symbol], vec![CallSite, CallSite]),
+        (FinalFindings { file: "express/utils.js" }, vec![Symbol], vec![CallSite, CallSite]),
     ] */
 
     // separate them after parallel scan is done
-    let (all_findings, all_symbols): (Vec<FinalFindings>, Vec<Vec<Symbol>>) =
-        all_results.into_iter().unzip();
+    let mut all_findings = Vec::new();
+    let mut all_symbols = Vec::new();
+    let mut all_calls = Vec::new();
+
+    for (findings, symbols, calls) in all_results {
+        all_findings.push(findings);
+        all_symbols.push(symbols);
+        all_calls.push(calls);
+    }
 
     // flatten symbols into SymbolTable
     let mut symbol_map: HashMap<String, Vec<Symbol>> = HashMap::new();
@@ -81,6 +90,17 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
         }
     }
 
+    // flatten calls into CallTable
+    let mut call_map: HashMap<String, Vec<CallSite>> = HashMap::new();
+    for calls in all_calls {
+        for call in calls {
+            call_map
+                .entry(call.file.clone())
+                .or_insert_with(Vec::new)
+                .push(call);
+        }
+    }
+
     let scan_id = Uuid::new_v4().to_string();
     let mut state = state.write().await;
     let symbol_table = SymbolTable {
@@ -89,6 +109,7 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
     let scan_data = ScanData {
         findings: all_findings,
         symbol_table,
+        call_table: CallTable { calls: call_map },
     };
 
     state.results.insert(scan_id.clone(), scan_data);
