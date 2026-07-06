@@ -10,7 +10,8 @@ mod test {
     fn detects_eval_wrapped_in_as_any() {
         let code = r#"(eval as any)("alert(1)");"#;
         let scan_result = SCANNER.scan(code, "test.ts");
-        assert!(scan_result.findings
+        assert!(scan_result
+            .findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::Eval));
     }
@@ -23,7 +24,8 @@ mod test {
         } satisfies Config;
     "#;
         let scan_result = SCANNER.scan(code, "test.ts");
-        assert!(scan_result.findings
+        assert!(scan_result
+            .findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::HardcodedSecret));
     }
@@ -32,7 +34,8 @@ mod test {
     fn detects_as_any_usage() {
         let code = r#"const x = userInput as any;"#;
         let scan_result = SCANNER.scan(code, "test.ts");
-        assert!(scan_result.findings
+        assert!(scan_result
+            .findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::UnsafeTypeAssertion));
     }
@@ -41,7 +44,8 @@ mod test {
     fn detects_eval_nested_in_call_arguments() {
         let code = r#"db.query(eval("SELECT * FROM " + table));"#;
         let scan_result = SCANNER.scan(code, "test.ts");
-        assert!(scan_result.findings
+        assert!(scan_result
+            .findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::Eval));
     }

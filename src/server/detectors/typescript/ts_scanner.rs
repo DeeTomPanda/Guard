@@ -21,7 +21,7 @@ impl Scanner for TypeScriptScanner {
                 return ScanResult {
                     findings: vec![],
                     symbols: vec![],
-                    calls:vec![]
+                    calls: vec![],
                 };
             }
         };

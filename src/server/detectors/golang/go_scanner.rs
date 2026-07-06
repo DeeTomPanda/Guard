@@ -238,7 +238,7 @@ impl<'a> GolangTreeSitter<'a> {
                     .map(|args| {
                         let mut cursor = args.walk();
                         args.children(&mut cursor)
-                        // strip away ',' and parantheses!
+                            // strip away ',' and parantheses!
                             .filter(|c| c.kind() != "," && c.kind() != "(" && c.kind() != ")")
                             .map(|c| c.utf8_text(code_bytes).unwrap_or("").to_string())
                             .collect()

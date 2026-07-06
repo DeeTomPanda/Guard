@@ -21,7 +21,8 @@ mod tests {
             }
         "#;
         let scan_result = SCANNER.scan(code, "test.js");
-        let secrets: Vec<_> = scan_result.findings
+        let secrets: Vec<_> = scan_result
+            .findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::HardcodedSecret)
             .collect();
@@ -37,7 +38,8 @@ mod tests {
             const token = generateToken();
         "#;
         let scan_result = SCANNER.scan(code, "test.js");
-        let secrets: Vec<_> = scan_result.findings
+        let secrets: Vec<_> = scan_result
+            .findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::HardcodedSecret)
             .collect();
@@ -52,7 +54,8 @@ mod tests {
             const token = `Bearer ${fetchToken()}`;
         "#;
         let scan_result = SCANNER.scan(code, "test.js");
-        let secrets: Vec<_> = scan_result.findings
+        let secrets: Vec<_> = scan_result
+            .findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::HardcodedSecret)
             .collect();
@@ -68,7 +71,8 @@ mod tests {
             const greeting = "hello world";
         "#;
         let scan_result = SCANNER.scan(code, "test.js");
-        let secrets: Vec<_> = scan_result.findings
+        let secrets: Vec<_> = scan_result
+            .findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::HardcodedSecret)
             .collect();
@@ -82,7 +86,8 @@ mod tests {
             const config = { password: "secret" } 
         "#;
         let scan_result = SCANNER.scan(code, "test.js");
-        let secrets: Vec<_> = scan_result.findings
+        let secrets: Vec<_> = scan_result
+            .findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::HardcodedSecret)
             .collect();
@@ -99,7 +104,8 @@ mod tests {
             eval("alert(1)");
         "#;
         let scan_result = SCANNER.scan(code, "test.js");
-        let evals: Vec<_> = scan_result.findings
+        let evals: Vec<_> = scan_result
+            .findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::Eval)
             .collect();
@@ -113,7 +119,8 @@ mod tests {
             const fn = new Function("return 1");
         "#;
         let scan_result = SCANNER.scan(code, "test.js");
-        let evals: Vec<_> = scan_result.findings
+        let evals: Vec<_> = scan_result
+            .findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::Eval)
             .collect();
@@ -128,7 +135,8 @@ mod tests {
             setInterval("doSomethingElse()", 500);
         "#;
         let scan_result = SCANNER.scan(code, "test.js");
-        let evals: Vec<_> = scan_result.findings
+        let evals: Vec<_> = scan_result
+            .findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::Eval)
             .collect();
@@ -143,7 +151,8 @@ mod tests {
             parseInt("42");
         "#;
         let scan_result = SCANNER.scan(code, "test.js");
-        let evals: Vec<_> = scan_result.findings
+        let evals: Vec<_> = scan_result
+            .findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::Eval)
             .collect();
@@ -160,7 +169,8 @@ mod tests {
             db.query(`SELECT * FROM ${table}`);
         "#;
         let scan_result = SCANNER.scan(code, "test.js");
-        let sql: Vec<_> = scan_result.findings
+        let sql: Vec<_> = scan_result
+            .findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::SQLInjection)
             .collect();
@@ -173,7 +183,8 @@ mod tests {
             db.query("SELECT * FROM " + table + " WHERE id = " + id);
         "#;
         let scan_result = SCANNER.scan(code, "test.js");
-        let sql: Vec<_> = scan_result.findings
+        let sql: Vec<_> = scan_result
+            .findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::SQLInjection)
             .collect();
@@ -187,7 +198,8 @@ mod tests {
             db.query("SELECT * FROM users WHERE id = 1");
         "#;
         let scan_result = SCANNER.scan(code, "test.js");
-        let sql: Vec<_> = scan_result.findings
+        let sql: Vec<_> = scan_result
+            .findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::SQLInjection)
             .collect();
@@ -201,7 +213,8 @@ mod tests {
             db.query(`${"SELECT * FROM " + table}`);
         "#;
         let scan_result = SCANNER.scan(code, "test.js");
-        let sql: Vec<_> = scan_result.findings
+        let sql: Vec<_> = scan_result
+            .findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::SQLInjection)
             .collect();
@@ -216,7 +229,8 @@ mod tests {
             db.query("SELECT * FROM users WHERE id = $1", [id]);
         "#;
         let scan_result = SCANNER.scan(code, "test.js");
-        let sql: Vec<_> = scan_result.findings
+        let sql: Vec<_> = scan_result
+            .findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::SQLInjection)
             .collect();
@@ -231,7 +245,8 @@ mod tests {
             console.log(`User ${id} logged in`);
         "#;
         let scan_result = SCANNER.scan(code, "test.js");
-        let sql: Vec<_> = scan_result.findings
+        let sql: Vec<_> = scan_result
+            .findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::SQLInjection)
             .collect();
@@ -250,13 +265,16 @@ mod tests {
             db.query(`SELECT * FROM ${table}`);
         "#;
         let scan_result = SCANNER.scan(code, "test.js");
-        assert!(scan_result.findings
+        assert!(scan_result
+            .findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::HardcodedSecret));
-        assert!(scan_result.findings
+        assert!(scan_result
+            .findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::Eval));
-        assert!(scan_result.findings
+        assert!(scan_result
+            .findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::SQLInjection));
     }

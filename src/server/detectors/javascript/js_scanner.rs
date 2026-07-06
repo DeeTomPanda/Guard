@@ -17,15 +17,15 @@ impl Scanner for JavaScriptScanner {
             Ok(program) => program,
             Err(e) => {
                 eprintln!("Parse error: {}", e);
-                return ScanResult{
-                    findings:vec![],
-                    symbols:vec![],
-                    calls:vec![]
+                return ScanResult {
+                    findings: vec![],
+                    symbols: vec![],
+                    calls: vec![],
                 };
             }
         };
 
-        let mut visitor = CodeVisitor::new(file_path,code);
+        let mut visitor = CodeVisitor::new(file_path, code);
 
         visitor.visit_program(&ast);
         visitor.into_scan_result()

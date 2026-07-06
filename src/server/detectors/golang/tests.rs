@@ -24,7 +24,8 @@ mod tests {
         "#;
 
         let scan_result = SCANNER.scan(code, "test.go");
-        let ops: Vec<_> = scan_result.findings
+        let ops: Vec<_> = scan_result
+            .findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::UnsafeFileOperation)
             .collect();
@@ -43,7 +44,8 @@ mod tests {
         "#;
 
         let scan_result = SCANNER.scan(code, "test.go");
-        let secrets: Vec<_> = scan_result.findings
+        let secrets: Vec<_> = scan_result
+            .findings
             .iter()
             .filter(|f| f.vuln_type == VulnerabilityType::HardcodedSecret)
             .collect();
@@ -68,7 +70,8 @@ mod tests {
 
         let scan_result = SCANNER.scan(code, "test.go");
 
-        assert!(scan_result.findings
+        assert!(scan_result
+            .findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::SQLInjection));
     }
@@ -98,7 +101,8 @@ mod tests {
 
         let scan_result = SCANNER.scan(code, "test.go");
 
-        assert!(scan_result.findings
+        assert!(scan_result
+            .findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::SQLInjection));
     }
@@ -126,7 +130,8 @@ mod tests {
 
         let scan_result = SCANNER.scan(code, "test.go");
 
-        assert!(scan_result.findings
+        assert!(scan_result
+            .findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::SQLInjection));
     }
@@ -145,7 +150,8 @@ mod tests {
         "#;
 
         let scan_result = SCANNER.scan(code, "test.go");
-        assert!(scan_result.findings
+        assert!(scan_result
+            .findings
             .iter()
             .any(|f| f.vuln_type == VulnerabilityType::UnsafeCodeExecution));
     }

@@ -116,7 +116,7 @@ impl Debug for Severity {
 pub struct Findings {
     pub vuln_type: VulnerabilityType,
     pub line_no: String,
-    pub col_no:String,
+    pub col_no: String,
     pub file_path: String,
     pub snippet: String,
     pub severity: Severity,
