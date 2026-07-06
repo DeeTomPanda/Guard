@@ -122,8 +122,8 @@ const QUERY_GORM_RAW_VAR: &str = r#"
 "#;
 
 impl GolangTreeSitter<'_> {
-    pub(super) fn check_sql_sprintf(&mut self, root: Node, src: &[u8]) {
-        for m in match_pattern(QUERY_SQL_SPRINTF, root, src) {
+    pub(super) fn check_sql_sprintf(&mut self, root: Node, code_bytes: &[u8]) {
+        for m in match_pattern(QUERY_SQL_SPRINTF, root, code_bytes) {
             let query = m
                 .iter()
                 .find(|(n, ..)| n == "query")
@@ -144,7 +144,7 @@ impl GolangTreeSitter<'_> {
                 {
                     self.report(
                         snippet,
-                        &(line.to_string()),
+                        root,
                         VulnerabilityType::SQLInjection,
                         Severity::Critical,
                     );
@@ -152,7 +152,7 @@ impl GolangTreeSitter<'_> {
             }
         }
 
-        for m in match_pattern(QUERY_SQL_SPRINTF_CONTEXT, root, src) {
+        for m in match_pattern(QUERY_SQL_SPRINTF_CONTEXT, root, code_bytes) {
             let query = m
                 .iter()
                 .find(|(n, ..)| n == "query")
@@ -173,7 +173,7 @@ impl GolangTreeSitter<'_> {
                 {
                     self.report(
                         snippet,
-                        &(line.to_string()),
+                        root,
                         VulnerabilityType::SQLInjection,
                         Severity::Critical,
                     );
@@ -182,8 +182,8 @@ impl GolangTreeSitter<'_> {
         }
     }
 
-    pub(super) fn check_sql_db(&mut self, root: Node, src: &[u8]) {
-        for m in match_pattern(QUERY_SQL_DB, root, src) {
+    pub(super) fn check_sql_db(&mut self, root: Node, code_bytes: &[u8]) {
+        for m in match_pattern(QUERY_SQL_DB, root, code_bytes) {
             let method = m
                 .iter()
                 .find(|(n, ..)| n == "method")
@@ -197,14 +197,14 @@ impl GolangTreeSitter<'_> {
             if let (Some(method), Some((snippet, line, col))) = (method, snippet) {
                 self.report(
                     snippet,
-                    &(line.to_string()),
+                    root,
                     VulnerabilityType::SQLInjection,
                     Severity::Critical,
                 );
             }
         }
 
-        for m in match_pattern(QUERY_SQL_DB_CONTEXT, root, src) {
+        for m in match_pattern(QUERY_SQL_DB_CONTEXT, root, code_bytes) {
             let method = m
                 .iter()
                 .find(|(n, ..)| n == "method")
@@ -218,7 +218,7 @@ impl GolangTreeSitter<'_> {
             if let (Some(method), Some((snippet, line, col))) = (method, snippet) {
                 self.report(
                     snippet,
-                    &(line.to_string()),
+                    root,
                     VulnerabilityType::SQLInjection,
                     Severity::Critical,
                 );
@@ -228,13 +228,13 @@ impl GolangTreeSitter<'_> {
 
     // ── GORM ───
 
-    pub(super) fn check_gorm(&mut self, root: Node, src: &[u8]) {
+    pub(super) fn check_gorm(&mut self, root: Node, code_bytes: &[u8]) {
         // string concat: db.Where("id = " + val)
-        for m in match_pattern(QUERY_GORM_CONCAT, root, src) {
+        for m in match_pattern(QUERY_GORM_CONCAT, root, code_bytes) {
             if let Some((_, snippet, line, _)) = m.iter().find(|(n, ..)| n == "snippet") {
                 self.report(
                     snippet,
-                    &(line.to_string()),
+                    root,
                     VulnerabilityType::SQLInjection,
                     Severity::Critical,
                 );
@@ -242,11 +242,11 @@ impl GolangTreeSitter<'_> {
         }
 
         // Sprintf inside Where: db.Where(fmt.Sprintf(...))
-        for m in match_pattern(QUERY_GORM_SPRINTF, root, src) {
+        for m in match_pattern(QUERY_GORM_SPRINTF, root, code_bytes) {
             if let Some((_, snippet, line, _)) = m.iter().find(|(n, ..)| n == "snippet") {
                 self.report(
                     snippet,
-                    &(line.to_string()),
+                    root,
                     VulnerabilityType::SQLInjection,
                     Severity::Critical,
                 );
@@ -254,11 +254,11 @@ impl GolangTreeSitter<'_> {
         }
 
         // raw variable: db.Raw(query)
-        for m in match_pattern(QUERY_GORM_RAW_VAR, root, src) {
+        for m in match_pattern(QUERY_GORM_RAW_VAR, root, code_bytes) {
             if let Some((_, snippet, line, _)) = m.iter().find(|(n, ..)| n == "snippet") {
                 self.report(
                     snippet,
-                    &(line.to_string()),
+                    root,
                     VulnerabilityType::SQLInjection,
                     Severity::Critical,
                 );

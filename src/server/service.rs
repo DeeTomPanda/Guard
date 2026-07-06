@@ -1,5 +1,6 @@
 use crate::server::detectors::{GolangScanner, JavaScriptScanner, Scanner, TypeScriptScanner};
-use crate::server::models::findings::Findings;
+use crate::server::models::results::ScanResult;
+
 use std::collections::HashMap;
 
 #[derive(Eq, Hash, PartialEq)]
@@ -26,21 +27,24 @@ impl OWASPScanner {
         OWASPScanner { scanners }
     }
 
-    pub fn scan(&self, codebase: &str, file_path: &str) -> Vec<Findings> {
-        let mut all_findings: Vec<Findings> = Vec::new();
+    pub fn scan(&self, codebase: &str, file_path: &str) -> ScanResult {
+        let dummy = ScanResult {
+            findings: Vec::new(),
+            symbols: Vec::new(),
+            calls: Vec::new(),
+        };
         let language = match Self::determine_language(file_path) {
             Some(lang) => lang,
-            None => return all_findings,
+            None => return dummy,
         };
 
         let scanner = match self.scanners.get(&language) {
             Some(d) => d,
-            None => return all_findings,
+            None => return dummy,
         };
 
-        let findings = scanner.scan(codebase, file_path);
-        all_findings.extend(findings);
-        all_findings
+        let scan_result = scanner.scan(codebase, file_path);
+        scan_result
     }
 
     // this can gow to support more languages

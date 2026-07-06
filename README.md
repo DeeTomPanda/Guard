@@ -75,11 +75,17 @@ Guard can export scan results in **SARIF format**, which is compatible with GitH
 
 ---
 
+### Generate quick analysis
+
+```bash
+guard analyze path/to/(file or dir)
+```
 ### Generate SARIF report
 
 ```bash
-guard scan path/to/file.js --sarif
+guard scan path/to/(file or dir) --sarif
 ```
+
 
 ### Note
 
@@ -131,6 +137,8 @@ flutter build web --base-href /app/
 
 ## Planned
 
+- [ ] Resolution of Symbol and Calls
+- [ ] Call Graph (cross file referencing)
 - [ ] Taint Analysis
 - [ ] Python support
 - [ ] Java support
@@ -141,3 +149,4 @@ flutter build web --base-href /app/
 - [x] TypeScript support
 - [x] Go support
 - [x] SARIF output format (GitHub Code Scanning compatible)
+- [x] SymbolTable and CallTable extraction

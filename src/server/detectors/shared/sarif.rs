@@ -24,6 +24,7 @@ pub fn to_sarif(all_findings: &[FinalFindings]) -> Sarif {
 
             let region = Region::builder()
                 .start_line(finding.line_no.parse::<i64>().unwrap_or(1))
+                .start_column(finding.col_no.parse().unwrap_or(1))
                 .build();
 
             let location = Location::builder()
