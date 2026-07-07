@@ -91,7 +91,7 @@ pub fn contains_dynamic_value(expr: &Expression) -> bool {
 }
 
 // unwrap as any assertions
-// eg:  (eval as any)(...) → eval(...)
+// eg:  (eval as any)(...) to eval(...)
 pub fn unwrap_ts_expression<'a>(expr: &'a Expression<'a>) -> &'a Expression<'a> {
     match expr {
         Expression::ParenthesizedExpression(e) => unwrap_ts_expression(&e.expression),

@@ -10,7 +10,7 @@ pub mod detectors;
 pub mod handlers;
 pub mod models;
 pub mod service;
-pub mod resolution;
+pub mod taint_engine;
 
 pub async fn start_server(state: Arc<RwLock<AppState>>) {
     println!("Starting server on http://127.0.0.1:3000");
@@ -28,7 +28,7 @@ pub async fn start_server(state: Arc<RwLock<AppState>>) {
             ServeDir::new("dashboard/build/web")
                 .not_found_service(ServeFile::new("dashboard/build/web/index.html")),
         )
-        // redirect root → /app
+        // redirect root to /app
         .route(
             "/",
             axum::routing::get(|| async { axum::response::Redirect::to("/app") }),

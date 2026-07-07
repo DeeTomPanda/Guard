@@ -1,0 +1,11 @@
+=== godotenv ===
+Scanned at: 
+
+Guard findings: 4 (156ms)
+Guard by rule:
+  sql-injection: 1
+  unsafe-code-execution: 1
+  unsafe-file-operation: 2
+
+Semgrep findings: 0 (2537ms)
+Semgrep by rule:

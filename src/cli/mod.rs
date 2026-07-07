@@ -4,17 +4,19 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
-use crate::server::models::resolution::{self, ResolutionTable};
+use crate::server::models::data_flow_graph::EdgeKind;
+use crate::server::taint_engine::data_flow_graph::DataFlowGraphBuilder;
 use crate::AppState;
 use crate::{
     server::{
         models::{
             calls::{CallSite, CallTable},
+            data_flow_graph::DataFlowGraph,
             findings::{severity_order, FinalFindings},
             symbols::{Symbol, SymbolTable},
         },
-        resolution::resolve::*,
         service::OWASPScanner,
+        taint_engine::resolve::Resolver,
     },
     state::ScanData,
 };
@@ -82,14 +84,12 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
     }
 
     // flatten symbols into SymbolTable
-
     let mut symbol_table = SymbolTable::new();
     for symbols in all_symbols {
         for symbol in symbols {
             symbol_table.insert(symbol.file.clone(), symbol);
         }
     }
-
     symbol_table.build_index();
 
     // flatten calls into CallTable
@@ -100,8 +100,8 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
         }
     }
 
-    // let resolution_table=ResolutionTable { calls: vec![] };
     let resolution_table = Resolver::resolve(&symbol_table, &call_table);
+    let graph = DataFlowGraphBuilder::build(&resolution_table, &symbol_table);
 
     // for resolved in &resolution_table.calls {
     //     println!(
@@ -118,6 +118,25 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
     //     }
     // }
 
+    // print!("\n");
+    // for (node_id, node) in &graph.nodes {
+    //     println!("NODE: {} ({})", node_id, node.name);
+
+    //     if let Some(edges) = graph.forward.get(node_id) {
+    //         for edge in edges {
+    //             let rel = match edge.kind {
+    //                 EdgeKind::Calls => "CALLS",
+    //                 EdgeKind::PassedAs(usize) => "ARG",
+    //                 EdgeKind::Assigns=>"ASSIGNMENT"
+    //             };
+
+    //             println!("      └── {} → {}", rel, edge.to);
+    //         }
+    //     }
+
+    //     println!();
+    // }
+
     let scan_id = Uuid::new_v4().to_string();
     let mut state = state.write().await;
 
@@ -126,6 +145,7 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
         symbol_table,
         call_table,
         resolution_table,
+        graph: DataFlowGraph::new(),
     };
 
     state.results.insert(scan_id.clone(), scan_data);

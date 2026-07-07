@@ -1,0 +1,2152 @@
+{
+  "runs": [
+    {
+      "results": [
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.sendFile.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 91
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "res.headers.etag === undefined"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.sendFile.js"
+                },
+                "region": {
+                  "startColumn": 10,
+                  "startLine": 155
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "setTimeout"
+          },
+          "ruleId": "eval-dangerous-call"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/Router.js"
+                },
+                "region": {
+                  "startColumn": 4,
+                  "startLine": 12
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "typeof router === 'function'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/Router.js"
+                },
+                "region": {
+                  "startColumn": 4,
+                  "startLine": 14
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "typeof router.get === 'function'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/Router.js"
+                },
+                "region": {
+                  "startColumn": 4,
+                  "startLine": 15
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "typeof router.handle === 'function'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/Router.js"
+                },
+                "region": {
+                  "startColumn": 4,
+                  "startLine": 16
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "typeof router.use === 'function'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/Router.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 615
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "setTimeout"
+          },
+          "ruleId": "eval-dangerous-call"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.use.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 157
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'saw ' + req.method + ' ' + req.url"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.use.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 288
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'saw ' + req.method + ' ' + req.url"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.use.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 327
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'saw ' + req.method + ' ' + req.url"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.use.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 348
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'saw ' + req.method + ' ' + req.url"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.use.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 453
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'saw ' + req.method + ' ' + req.url + ' through ' + req.originalUrl"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.use.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 485
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'saw ' + req.method + ' ' + req.url + ' through ' + req.originalUrl"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.use.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 510
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'saw ' + req.method + ' ' + req.url + ' through ' + req.originalUrl"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.use.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 534
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'saw ' + req.method + ' ' + req.url + ' through ' + req.originalUrl"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/express.raw.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 358
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'[' + err.type + '] ' + err.message"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/express.raw.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 415
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'the user is ' + Buffer.alloc(1024 * 100, '.').toString()"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.render.js"
+                },
+                "region": {
+                  "startColumn": 10,
+                  "startLine": 123
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'got error: ' + err.name"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.render.js"
+                },
+                "region": {
+                  "startColumn": 14,
+                  "startLine": 348
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'got error: ' + err.name"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/req.baseUrl.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 60
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'0@' + req.baseUrl"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/req.baseUrl.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 65
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'1@' + req.baseUrl"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/req.baseUrl.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 70
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'2@' + req.baseUrl"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/req.baseUrl.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 74
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'3@' + req.baseUrl"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/req.baseUrl.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 79
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'4@' + req.baseUrl"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/express.text.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 390
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'[' + err.type + '] ' + err.message"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/express.text.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 443
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'user is ' + Buffer.alloc(1024 * 100, '.').toString()"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/express.text.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 165
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "setTimeout"
+          },
+          "ruleId": "eval-dangerous-call"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.json.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 167
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "undefined === app.get('json spaces')"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.format.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 21
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "req === a"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.format.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 22
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "res === b"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.format.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 23
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "next === c"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.format.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 32
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'Supports: ' + err.types.join(', ')"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.format.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 47
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'Supports: ' + err.types.join(', ')"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.format.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 56
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "req === a"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.format.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 57
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "res === b"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.format.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 58
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "next === c"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.format.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 76
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'Supports: ' + err.types.join(', ')"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.format.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 110
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'Supports: ' + err.types.join(', ')"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.format.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 172
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'Supports: ' + err.types.join(', ')"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.response.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 89
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "str + '!'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.response.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 121
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "str + '!'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/req.get.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 13
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "req.get('Something-Else') === undefined"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.listen.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 21
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "err.code === 'EADDRINUSE'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.listen.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 51
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "typeof addr.family === 'string'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.location.js"
+                },
+                "region": {
+                  "startColumn": 10,
+                  "startLine": 134
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'Bad host: ' + host + ' !== ' + domain"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.location.js"
+                },
+                "region": {
+                  "startColumn": 13,
+                  "startLine": 142
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'/?q=' + encodeURIComponent(inputUrl)"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.download.js"
+                },
+                "region": {
+                  "startColumn": 10,
+                  "startLine": 462
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'got ' + err.status + ' ' + err.code"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.param.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 20
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "(typeof id) + ':' + id"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.param.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 25
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "(typeof id) + ':' + id"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.param.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 52
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "(typeof id) + ':' + id"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.param.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 171
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'' + name"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.param.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 188
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'' + id"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.param.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 209
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'' + id"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.param.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 226
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'' + id"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.route.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 80
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'caught: ' + err.message"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.route.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 102
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'caught: ' + err.message"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.route.js"
+                },
+                "region": {
+                  "startColumn": 10,
+                  "startLine": 143
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'caught again: ' + err.message"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.route.js"
+                },
+                "region": {
+                  "startColumn": 10,
+                  "startLine": 165
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'caught again: ' + err.message"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.route.js"
+                },
+                "region": {
+                  "startColumn": 10,
+                  "startLine": 183
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'caught: ' + err.message"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/express.static.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 144
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'/' + dest + '/todo.txt'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/express.static.js"
+                },
+                "region": {
+                  "startColumn": 29,
+                  "startLine": 695
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "fixtures + '/users'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/express.static.js"
+                },
+                "region": {
+                  "startColumn": 32,
+                  "startLine": 735
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "fixtures + '/todo.txt'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.router.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 188
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "op + 'ing user ' + id"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.router.js"
+                },
+                "region": {
+                  "startColumn": 10,
+                  "startLine": 204
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "op + 'ing user ' + id"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.router.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 584
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'users from ' + from + ' to ' + to"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.router.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 621
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "req.params.op + 'ing ' + req.params.user"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.router.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 634
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "req.params.op + 'ing ' + req.params.user + (req.url.startsWith('/users') ? ' (old)' : '')"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.router.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 650
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "req.params.op + 'ing ' + req.params.user"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.router.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 663
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'poking ' + req.params.user"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.router.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 682
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "op + 'ing ' + req.params.user"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.router.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 695
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "op + 'ing ' + req.params.user"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.router.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 786
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "req.params.name + ' as ' + req.params.format"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.router.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 805
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "req.params.name + ' as ' + (req.params.format || 'html')"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.router.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 950
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'route go ' + err.message"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.router.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 975
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'saw ' + err.name + ': ' + err.message"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.router.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 994
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'saw ' + err.name + ': ' + err.message"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.router.js"
+                },
+                "region": {
+                  "startColumn": 10,
+                  "startLine": 1038
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'saw ' + err.name + ': ' + err.message"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.router.js"
+                },
+                "region": {
+                  "startColumn": 10,
+                  "startLine": 1061
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'saw ' + err.name + ': ' + err.message"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.router.js"
+                },
+                "region": {
+                  "startColumn": 10,
+                  "startLine": 1080
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'saw ' + err.name + ': ' + err.message"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/app.router.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 1107
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'editing user ' + req.params.id"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/res.jsonp.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 311
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "undefined === app.get('json spaces')"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/express.json.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 139
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'\"' + buf.toString() + '\"}'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/express.json.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 533
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'[' + err.type + '] ' + err.message"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/express.json.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 597
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'{\"user\":\"' + Buffer.alloc(1024 * 100, '.').toString() + '\"}'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/express.urlencoded.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 244
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'str=' + buf.toString()"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/express.urlencoded.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 274
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'str=' + buf.toString()"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/express.urlencoded.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 288
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'str=' + buf.toString()"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/express.urlencoded.js"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 636
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'[' + err.type + '] ' + err.message"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/test/express.urlencoded.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 689
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'user=' + Buffer.alloc(1024 * 100, '.').toString()"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/lib/response.js"
+                },
+                "region": {
+                  "startColumn": 20,
+                  "startLine": 767
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "maxAge / 1000"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/cookies/index.js"
+                },
+                "region": {
+                  "startColumn": 4,
+                  "startLine": 28
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'<form method=\"post\"><p>Check to <label>'\n      + '<input type=\"checkbox\" name=\"remember\"/> remember me</label> '\n      + '<input type=\"submit\" value=\"Submit\"/>.</p></form>'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/content-negotiation/index.js"
+                },
+                "region": {
+                  "startColumn": 6,
+                  "startLine": 12
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'<ul>' + users.map(function(user){\n        return '<li>' + user.name + '</li>';\n      }).join('') + '</ul>'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/content-negotiation/users.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 6
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'<ul>' + users.map(function(user){\n    return '<li>' + user.name + '</li>';\n  }).join('') + '</ul>'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/route-middleware/index.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 75
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'Viewing user ' + req.user.name"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/route-middleware/index.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 79
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'Editing user ' + req.user.name"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/route-middleware/index.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 83
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'Deleted user ' + req.user.name"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/downloads/index.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 16
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'<ul>' +\n    '<li>Download <a href=\"/files/notes/groceries.txt\">notes/groceries.txt</a>.</li>' +\n    '<li>Download <a href=\"/files/amazing.txt\">amazing.txt</a>.</li>' +\n    '<li>Download <a href=\"/files/missing.txt\">missing.txt</a>.</li>' +\n    '<li>Download <a href=\"/files/CCTV大赛上海分赛区.txt\">CCTV大赛上海分赛区.txt</a>.</li>' +\n    '</ul>'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/mvc/controllers/user/index.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 40
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'/user/' + req.user.id"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/mvc/controllers/pet/index.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 30
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'/pet/' + req.pet.id"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/mvc/controllers/user-pet/index.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 20
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'Added pet ' + body.pet.name"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/mvc/controllers/user-pet/index.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 21
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'/user/' + id"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/online/index.js"
+                },
+                "region": {
+                  "startColumn": 4,
+                  "startLine": 53
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'<p>Users online: ' + ids.length + '</p>' + list(ids)"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/session/index.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 30
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "body + '<p>viewed <strong>' + req.session.views + '</strong> times.</p>'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/session/redis.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 35
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "body + '<p>viewed <strong>' + req.session.views + '</strong> times.</p>'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/route-map/index.js"
+                },
+                "region": {
+                  "startColumn": 4,
+                  "startLine": 37
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'user ' +  escapeHtml(req.params.uid)"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/route-map/index.js"
+                },
+                "region": {
+                  "startColumn": 4,
+                  "startLine": 47
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'user ' + escapeHtml(req.params.uid) + '\\'s pets'"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/route-map/index.js"
+                },
+                "region": {
+                  "startColumn": 4,
+                  "startLine": 51
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'delete ' + escapeHtml(req.params.uid) + '\\'s pet ' + escapeHtml(req.params.pid)"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/params/index.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 56
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'user ' + req.user.name"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/params/index.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 67
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'users ' + names.slice(from, to + 1).join(', ')"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/vhost/index.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 30
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'requested ' + req.params.sub"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/vhost/index.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 39
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'http://example.com:3000/' + req.vhost[0]"
+          },
+          "ruleId": "sql-injection"
+        },
+        {
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/dtompanda/Projects/VulnerableRepos/express/examples/cookie-sessions/index.js"
+                },
+                "region": {
+                  "startColumn": 2,
+                  "startLine": 18
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'viewed ' + req.session.count + ' times\\n'"
+          },
+          "ruleId": "sql-injection"
+        }
+      ],
+      "tool": {
+        "driver": {
+          "name": "Guard",
+          "rules": [
+            {
+              "id": "sql-injection",
+              "name": "SQL Injection"
+            },
+            {
+              "id": "eval-dangerous-call",
+              "name": "Eval / Dangerous Call"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}

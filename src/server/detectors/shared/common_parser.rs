@@ -231,7 +231,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                                     line: self.span_to_line(node.span.start as usize),
                                     column: node.span.start as usize,
                                     scope: self.current_scope(),
-                                    assigned_from:None
+                                    assigned_from: None,
                                 });
                             }
                         }
@@ -353,7 +353,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                 line: self.span_to_line(node.span.start as usize),
                 column: node.span.start as usize,
                 scope,
-                assigned_from:None
+                assigned_from: None,
             });
 
             // push scope before walking children
@@ -369,7 +369,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                         line: self.span_to_line(param.span.start as usize),
                         column: param.span.start as usize,
                         scope: self.current_scope(),
-                        assigned_from:None
+                        assigned_from: None,
                     });
                 }
             }
@@ -394,7 +394,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                 line: self.span_to_line(node.span.start as usize),
                 column: node.span.start as usize,
                 scope: self.current_scope(),
-                assigned_from:None
+                assigned_from: None,
             });
 
             self.scope_stack.push(name);
@@ -421,7 +421,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                 line: self.span_to_line(node.span.start as usize),
                 column: node.span.start as usize,
                 scope: self.current_scope(),
-                assigned_from:None
+                assigned_from: None,
             });
 
             // push method name onto scope
@@ -437,7 +437,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                         line: self.span_to_line(param.span.start as usize),
                         column: param.span.start as usize,
                         scope: self.current_scope(), // now inside method scope
-                        assigned_from:None
+                        assigned_from: None,
                     });
                 }
             }
@@ -472,7 +472,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                     line: self.span_to_line(node.span.start as usize),
                     column: node.span.start as usize,
                     scope: "global".to_string(), // imports are always global
-                    assigned_from:None
+                    assigned_from: None,
                 });
             }
         }

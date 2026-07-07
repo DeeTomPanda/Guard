@@ -384,7 +384,7 @@ impl<'a> GolangTreeSitter<'a> {
                 }
             }
 
-            // everything else — just walk children
+            // everything else, just walk children
             _ => {
                 self.walk_children(node, code_bytes);
             }
