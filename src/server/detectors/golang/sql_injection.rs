@@ -134,7 +134,7 @@ impl GolangTreeSitter<'_> {
                 .find(|(n, ..)| n == "snippet")
                 .map(|(_, text, line, col)| (text, line, col));
 
-            if let (Some(q), Some((snippet, line, col))) = (query, snippet) {
+            if let (Some(q), Some((snippet, _line, _col))) = (query, snippet) {
                 let q = q.to_uppercase();
 
                 if q.contains("SELECT")
@@ -163,7 +163,7 @@ impl GolangTreeSitter<'_> {
                 .find(|(n, ..)| n == "snippet")
                 .map(|(_, text, line, col)| (text, line, col));
 
-            if let (Some(q), Some((snippet, line, col))) = (query, snippet) {
+            if let (Some(q), Some((snippet, _line, _col))) = (query, snippet) {
                 let q = q.to_uppercase();
 
                 if q.contains("SELECT")
@@ -194,7 +194,7 @@ impl GolangTreeSitter<'_> {
                 .find(|(n, ..)| n == "snippet")
                 .map(|(_, text, line, col)| (text, line, col));
 
-            if let (Some(method), Some((snippet, line, col))) = (method, snippet) {
+            if let (Some(_method), Some((snippet, _line, _col))) = (method, snippet) {
                 self.report(
                     snippet,
                     root,
@@ -215,7 +215,7 @@ impl GolangTreeSitter<'_> {
                 .find(|(n, ..)| n == "snippet")
                 .map(|(_, text, line, col)| (text, line, col));
 
-            if let (Some(method), Some((snippet, line, col))) = (method, snippet) {
+            if let (Some(_method), Some((snippet, _line, _col))) = (method, snippet) {
                 self.report(
                     snippet,
                     root,
@@ -231,7 +231,7 @@ impl GolangTreeSitter<'_> {
     pub(super) fn check_gorm(&mut self, root: Node, code_bytes: &[u8]) {
         // string concat: db.Where("id = " + val)
         for m in match_pattern(QUERY_GORM_CONCAT, root, code_bytes) {
-            if let Some((_, snippet, line, _)) = m.iter().find(|(n, ..)| n == "snippet") {
+            if let Some((_, snippet, _line, _)) = m.iter().find(|(n, ..)| n == "snippet") {
                 self.report(
                     snippet,
                     root,
@@ -243,7 +243,7 @@ impl GolangTreeSitter<'_> {
 
         // Sprintf inside Where: db.Where(fmt.Sprintf(...))
         for m in match_pattern(QUERY_GORM_SPRINTF, root, code_bytes) {
-            if let Some((_, snippet, line, _)) = m.iter().find(|(n, ..)| n == "snippet") {
+            if let Some((_, snippet, _line, _)) = m.iter().find(|(n, ..)| n == "snippet") {
                 self.report(
                     snippet,
                     root,
@@ -255,7 +255,7 @@ impl GolangTreeSitter<'_> {
 
         // raw variable: db.Raw(query)
         for m in match_pattern(QUERY_GORM_RAW_VAR, root, code_bytes) {
-            if let Some((_, snippet, line, _)) = m.iter().find(|(n, ..)| n == "snippet") {
+            if let Some((_, snippet, _line, _)) = m.iter().find(|(n, ..)| n == "snippet") {
                 self.report(
                     snippet,
                     root,

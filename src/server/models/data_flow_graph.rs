@@ -1,4 +1,3 @@
-use super::calls::CallSite;
 use crate::server::models::symbols::{SymbolKind, SymbolTable};
 use std::collections::HashMap;
 
@@ -41,13 +40,19 @@ pub enum EdgeKind {
     Assigns,         // rhs to lhs  (data flows from rhs into lhs: Y = X means X→Y)
     PassedAs(usize), // variable to callee, as argument at index N
 }
+#[derive(Debug, Clone)]
+pub struct EdgeSite {
+    pub file: String,
+    pub line: usize,
+    pub column: usize,
+}
 
 #[derive(Debug, Clone)]
 pub struct GraphEdge {
     pub from: String, // source node key
     pub to: String,   // target node key
     pub kind: EdgeKind,
-    pub site: CallSite, // source location in code
+    pub site: EdgeSite, // source location in code
 }
 
 // ── Graph ─────────────────────────────────────────────────────────────────────
@@ -75,39 +80,40 @@ impl DataFlowGraph {
     // look up a function in SymbolTable for real kind/line; fall back to synthetic node.
     // callee may be in another file (cross file impl pending)
     pub fn register_function(&mut self, name: &str, file: &str, st: &SymbolTable) -> String {
-        let key = self.node_key(name, file);
-        if self.nodes.contains_key(&key) {
-            return key;
-        }
+        let found = st
+            .fn_index
+            .get(file)
+            .and_then(|m| m.get(name))
+            .and_then(|v| v.first());
 
-        let found = st.index.get(file).and_then(|file_idx| {
-            file_idx
-                .iter()
-                .find(|(k, _)| k.starts_with(&format!("{}::", name)))
-                .and_then(|(_, syms)| {
-                    syms.iter()
-                        .find(|s| matches!(s.kind, SymbolKind::Function | SymbolKind::Method))
-                })
-        });
-
-        let node = match found {
-            Some(sym) => GraphNode {
-                name: sym.name.clone(),
-                kind: NodeKind::Function,
-                file: sym.file.clone(),
-                line: sym.line,
-            },
-            None => GraphNode {
-                name: name.to_string(),
-                kind: NodeKind::Function,
-                file: file.to_string(),
-                line: 0,
-            },
+        let (key, node) = match found {
+            Some(sym) => (
+                format!("{}::{}::{}", sym.name, sym.scope, sym.file), // scope-qualified, collision-safe
+                GraphNode {
+                    name: sym.name.clone(),
+                    kind: NodeKind::Function,
+                    file: sym.file.clone(),
+                    line: sym.line,
+                },
+            ),
+            None => (
+                format!("{}::unresolved::{}", name, file), // e.g. db.query — external/unresolvable
+                GraphNode {
+                    name: name.to_string(),
+                    kind: NodeKind::Function,
+                    file: file.to_string(),
+                    line: 0,
+                },
+            ),
         };
 
-        self.nodes.insert(key.clone(), node);
+        if !self.nodes.contains_key(&key) {
+            self.nodes.insert(key.clone(), node);
+        }
         key
     }
+
+    pub fn register_variable(&mut self) {}
 
     pub fn add_edge(&mut self, edge: GraphEdge) {
         self.reverse

@@ -22,7 +22,7 @@ const QUERY_FILE_OS: &str = r#"
 impl GolangTreeSitter<'_> {
     pub(super) fn check_file_ops(&mut self, root: Node, code_bytes: &[u8]) {
         for m in match_pattern(QUERY_FILE_OS, root, code_bytes) {
-            if let (Some((_, snippet, line, _)), Some((_, method, _, _))) = (
+            if let (Some((_, snippet, _line, _)), Some((_, _method, _, _))) = (
                 m.iter().find(|(n, ..)| n == "snippet"),
                 m.iter().find(|(n, ..)| n == "method"),
             ) {

@@ -23,7 +23,7 @@ impl CallTable {
     }
 
     pub fn insert(&mut self, file: String, call: CallSite) {
-        self.calls.entry(file).or_insert_with(Vec::new).push(call);
+        self.calls.entry(file).or_default().push(call);
     }
 
     pub fn total(&self) -> usize {

@@ -43,8 +43,8 @@ impl OWASPScanner {
             None => return dummy,
         };
 
-        let scan_result = scanner.scan(codebase, file_path);
-        scan_result
+        
+        scanner.scan(codebase, file_path)
     }
 
     // this can gow to support more languages

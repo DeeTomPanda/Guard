@@ -4,7 +4,6 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
-use crate::server::models::data_flow_graph::EdgeKind;
 use crate::server::taint_engine::data_flow_graph::DataFlowGraphBuilder;
 use crate::AppState;
 use crate::{
@@ -101,7 +100,7 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
     }
 
     let resolution_table = Resolver::resolve(&symbol_table, &call_table);
-    let graph = DataFlowGraphBuilder::build(&resolution_table, &symbol_table);
+    let _graph = DataFlowGraphBuilder::build(&resolution_table, &symbol_table);
 
     // for resolved in &resolution_table.calls {
     //     println!(
@@ -117,6 +116,11 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
     //         );
     //     }
     // }
+
+    for var in &resolution_table.variables {
+        println!("variable: {}", var.name);
+        dbg!(&var.chain);
+    }
 
     // print!("\n");
     // for (node_id, node) in &graph.nodes {

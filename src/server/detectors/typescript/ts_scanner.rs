@@ -1,7 +1,6 @@
 use crate::server::detectors::shared::common_parser::{parse_to_ast, CodeVisitor};
 use crate::server::detectors::Scanner;
 use crate::server::models::results::ScanResult;
-use crate::Findings;
 use oxc::allocator::Allocator;
 use oxc::ast_visit::Visit;
 

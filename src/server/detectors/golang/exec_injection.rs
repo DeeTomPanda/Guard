@@ -48,7 +48,7 @@ const QUERY_SYSCALL_EXEC: &str = r#"
 impl GolangTreeSitter<'_> {
     pub(super) fn check_exec(&mut self, root: Node, code_bytes: &[u8]) {
         for m in match_pattern(QUERY_EXEC_COMMAND_DYNAMIC, root, code_bytes) {
-            if let Some((_, snippet, line, _)) = m.iter().find(|(n, ..)| n == "snippet") {
+            if let Some((_, snippet, _line, _)) = m.iter().find(|(n, ..)| n == "snippet") {
                 self.report(
                     snippet,
                     root,
@@ -59,7 +59,7 @@ impl GolangTreeSitter<'_> {
         }
 
         for m in match_pattern(QUERY_EXEC_COMMAND_SHELL, root, code_bytes) {
-            if let Some((_, snippet, line, _)) = m.iter().find(|(n, ..)| n == "snippet") {
+            if let Some((_, snippet, _line, _)) = m.iter().find(|(n, ..)| n == "snippet") {
                 self.report(
                     snippet,
                     root,
@@ -72,7 +72,7 @@ impl GolangTreeSitter<'_> {
 
     pub(super) fn check_syscall(&mut self, root: Node, code_bytes: &[u8]) {
         for m in match_pattern(QUERY_SYSCALL_EXEC, root, code_bytes) {
-            if let (Some((_, snippet, line, _)), Some((_, method, _, _))) = (
+            if let (Some((_, snippet, _line, _)), Some((_, _method, _, _))) = (
                 m.iter().find(|(n, ..)| n == "snippet"),
                 m.iter().find(|(n, ..)| n == "method"),
             ) {

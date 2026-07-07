@@ -1,6 +1,6 @@
 use crate::server::models::{
     calls::{CallSite, CallTable},
-    resolution::{ResolutionTable, ResolvedArgument, ResolvedCall},
+    resolution::{ResolutionTable, ResolvedArgument, ResolvedCall, ResolvedVariable},
     symbols::{Symbol, SymbolKind, SymbolTable},
 };
 
@@ -10,17 +10,19 @@ impl Resolver {
     // for now only resolves calls
     // TODO add vars, imports etc
     pub fn resolve(symbol_table: &SymbolTable, call_table: &CallTable) -> ResolutionTable {
-        let mut resolution = ResolutionTable::new();
+        let mut resolution_table = ResolutionTable::new();
 
         for calls in call_table.calls.values() {
             for call in calls {
-                resolution
+                resolution_table
                     .calls
                     .push(Self::resolve_call(call, symbol_table));
             }
         }
 
-        resolution
+        Self::resolve_variables(&mut resolution_table, symbol_table);
+
+        resolution_table
     }
 
     fn resolve_call(call: &CallSite, symbol_table: &SymbolTable) -> ResolvedCall {
@@ -48,6 +50,34 @@ impl Resolver {
         ResolvedArgument {
             raw: raw.to_string(),
             chain,
+        }
+    }
+
+    // ── variables ─────────────────────────────────────────────────────────────
+
+    // walk every variable and import in the SymbolTable independently of call sites.
+    // this captures data flow that never appears as a function argument
+    // intermediate assignments, imports, etc.
+    fn resolve_variables(res_table: &mut ResolutionTable, symbol_table: &SymbolTable) {
+        for (file, symbols) in &symbol_table.symbols {
+            for symbol in symbols {
+                match symbol.kind {
+                    SymbolKind::Variable => {
+                        let chain =
+                            Self::resolve_chain(&symbol.name, &symbol.scope, file, symbol_table, 0);
+
+                        if !chain.is_empty() {
+                            res_table.variables.push(ResolvedVariable {
+                                name: symbol.name.to_string(),
+                                chain,
+                            });
+                        }
+                    }
+                    // TODO add imports
+                    // Functions, parameters, etc are not data flow variables
+                    _ => {}
+                };
+            }
         }
     }
 
@@ -109,9 +139,9 @@ impl Resolver {
         chain
     }
 
-    /// Cross-file resolution via import symbols.
-    /// Requires parsers to store the resolved source path in assigned_from 
-    /// Currently a stub (to hanlde path normalization)
+    // Cross-file resolution via import symbols.
+    // Requires parsers to store the resolved source path in assigned_from
+    // Currently a stub (to hanlde path normalization)
     fn resolve_import(name: &str, file: &str, st: &SymbolTable) -> Option<Symbol> {
         let imports = st.symbols.get(file)?;
 

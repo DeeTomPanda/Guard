@@ -33,7 +33,7 @@ pub fn is_hardcoded_secret(init: &Expression<'_>) -> Option<String> {
         Expression::TemplateLiteral(template) if template.expressions.is_empty() => {
             template.quasis.first().map(|q| q.value.raw.to_string())
         }
-        _ => return None,
+        _ => None,
     }
 }
 
