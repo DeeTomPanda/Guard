@@ -10,7 +10,7 @@ use crate::{
     server::{
         models::{
             calls::{CallSite, CallTable},
-            data_flow_graph::DataFlowGraph,
+            data_flow_graph::{DataFlowGraph,EdgeKind,NodeKind},
             findings::{severity_order, FinalFindings},
             symbols::{Symbol, SymbolTable},
         },
@@ -89,7 +89,7 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
             symbol_table.insert(symbol.file.clone(), symbol);
         }
     }
-    symbol_table.build_index();
+    symbol_table.build_indexes();
 
     // flatten calls into CallTable
     let mut call_table = CallTable::new();
@@ -100,7 +100,7 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
     }
 
     let resolution_table = Resolver::resolve(&symbol_table, &call_table);
-    let _graph = DataFlowGraphBuilder::build(&resolution_table, &symbol_table);
+    let graph = DataFlowGraphBuilder::build(&resolution_table, &symbol_table);
 
     // for resolved in &resolution_table.calls {
     //     println!(
@@ -117,14 +117,17 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
     //     }
     // }
 
-    for var in &resolution_table.variables {
-        println!("variable: {}", var.name);
-        dbg!(&var.chain);
-    }
-
     // print!("\n");
     // for (node_id, node) in &graph.nodes {
-    //     println!("NODE: {} ({})", node_id, node.name);
+
+    //     let kind =match node.kind{
+    //         NodeKind::Function=> "function",
+    //         NodeKind::Import=> "import",
+    //         NodeKind::Parameter =>"param",
+    //         NodeKind::Variable => "var"
+    //     };
+
+    //     println!("NODE: {} ({})  {}", node_id, node.name, kind);
 
     //     if let Some(edges) = graph.forward.get(node_id) {
     //         for edge in edges {
@@ -134,7 +137,7 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
     //                 EdgeKind::Assigns=>"ASSIGNMENT"
     //             };
 
-    //             println!("      └── {} → {}", rel, edge.to);
+    //             println!("      └── {} → {} ", rel, edge.to);
     //         }
     //     }
 

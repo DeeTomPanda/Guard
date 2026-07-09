@@ -21,14 +21,6 @@ pub struct ResolvedVariable {
     pub chain: Vec<Symbol>,
 }
 
-// TODO: implement this
-
-#[derive(Debug)]
-pub struct ResolvedImports {
-    pub symbol: Symbol,
-    pub assigned_from: Option<Symbol>,
-}
-
 #[derive(Debug)]
 pub struct ResolutionTable {
     pub calls: Vec<ResolvedCall>,

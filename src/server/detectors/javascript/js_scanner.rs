@@ -1,4 +1,4 @@
-use crate::server::detectors::shared::common_parser::{parse_to_ast, CodeVisitor};
+use crate::server::detectors::shared::common_parser::CodeVisitor;
 use crate::server::detectors::Scanner;
 use crate::server::models::results::ScanResult;
 use oxc::allocator::Allocator;
@@ -12,8 +12,9 @@ pub struct JavaScriptScanner;
 impl Scanner for JavaScriptScanner {
     fn scan(&self, code: &str, file_path: &str) -> ScanResult {
         let allocator = Allocator::default();
+        let mut visitor = CodeVisitor::new(file_path, code);
 
-        let ast = match parse_to_ast(code, &allocator, file_path) {
+        let ast = match CodeVisitor::parse_to_ast(code, &allocator, file_path) {
             Ok(program) => program,
             Err(e) => {
                 eprintln!("Parse error: {}", e);
@@ -24,8 +25,6 @@ impl Scanner for JavaScriptScanner {
                 };
             }
         };
-
-        let mut visitor = CodeVisitor::new(file_path, code);
 
         visitor.visit_program(&ast);
         visitor.into_scan_result()

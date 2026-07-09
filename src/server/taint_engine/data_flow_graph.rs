@@ -1,4 +1,3 @@
-
 use crate::server::models::{
     data_flow_graph::{DataFlowGraph, EdgeKind, EdgeSite, GraphEdge, GraphNode, NodeKind},
     resolution::ResolutionTable,
@@ -26,8 +25,8 @@ impl DataFlowGraphBuilder {
             for window in var.chain.windows(2) {
                 let (lhs, rhs) = (&window[0], &window[1]);
 
-                let lhs_key = graph.node_key(&lhs.name, &lhs.file);
-                let rhs_key = graph.node_key(&rhs.name, &rhs.file);
+                let lhs_key = graph.node_key(&lhs.name, &lhs.scope, &lhs.file);
+                let rhs_key = graph.node_key(&rhs.name, &rhs.scope, &rhs.file);
 
                 graph
                     .nodes
@@ -84,7 +83,7 @@ impl DataFlowGraphBuilder {
                     continue;
                 };
 
-                let sym_key = graph.node_key(&sym.name, &sym.file);
+                let sym_key = graph.node_key(&sym.name, &sym.scope, &sym.file);
                 graph
                     .nodes
                     .entry(sym_key.clone())
@@ -108,8 +107,8 @@ impl DataFlowGraphBuilder {
                 for window in arg.chain.windows(2) {
                     let (lhs, rhs) = (&window[0], &window[1]);
 
-                    let lhs_key = graph.node_key(&lhs.name, &lhs.file);
-                    let rhs_key = graph.node_key(&rhs.name, &rhs.file);
+                    let lhs_key = graph.node_key(&lhs.name, &lhs.scope, &lhs.file);
+                    let rhs_key = graph.node_key(&rhs.name, &rhs.scope, &rhs.file);
 
                     graph
                         .nodes

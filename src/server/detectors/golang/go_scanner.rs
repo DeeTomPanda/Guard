@@ -5,7 +5,7 @@ use crate::server::{
         calls::CallSite,
         findings::Findings,
         results::ScanResult,
-        symbols::{Symbol, SymbolKind},
+        symbols::{AssignedFrom, Symbol, SymbolKind},
     },
 };
 
@@ -138,8 +138,7 @@ impl<'a> GolangTreeSitter<'a> {
                 // get r.h.s text
                 let assigned_from = node
                     .child_by_field_name("right")
-                    .and_then(|r| r.utf8_text(code_bytes).ok())
-                    .map(|s| s.to_string());
+                    .and_then(|r| self.rhs_to_assigned_from(r, code_bytes));
 
                 if let Some(left) = node.child_by_field_name("left") {
                     let mut cursor = left.walk();
@@ -163,15 +162,13 @@ impl<'a> GolangTreeSitter<'a> {
 
             // var declaration: var x int = something
             "var_declaration" => {
-                // get r.h.s text
-                let assigned_from = node
-                    .child_by_field_name("right")
-                    .and_then(|r| r.utf8_text(code_bytes).ok())
-                    .map(|s| s.to_string());
-
                 let mut cursor = node.walk();
                 for child in node.children(&mut cursor) {
                     if child.kind() == "var_spec" {
+                        // get r.h.s text
+                        let assigned_from = child
+                            .child_by_field_name("value")
+                            .and_then(|r| self.rhs_to_assigned_from(r, code_bytes));
                         if let Some(name_node) = child.child_by_field_name("name") {
                             let name = name_node.utf8_text(code_bytes).unwrap_or("").to_string();
                             self.symbols.push(Symbol {
@@ -253,8 +250,7 @@ impl<'a> GolangTreeSitter<'a> {
                     if child.kind() == "const_spec" {
                         let assigned_from = child
                             .child_by_field_name("value")
-                            .and_then(|v| v.utf8_text(code_bytes).ok())
-                            .map(|s| s.to_string());
+                            .and_then(|r| self.rhs_to_assigned_from(r, code_bytes));
 
                         if let Some(name_node) = child.child_by_field_name("name") {
                             let name = name_node.utf8_text(code_bytes).unwrap_or("").to_string();
@@ -278,9 +274,7 @@ impl<'a> GolangTreeSitter<'a> {
                 let left = node.child_by_field_name("left");
                 let right = node.child_by_field_name("right");
 
-                let assigned_from = right
-                    .and_then(|r| r.utf8_text(code_bytes).ok())
-                    .map(|s| s.to_string());
+                let assigned_from = right.and_then(|r| self.rhs_to_assigned_from(r, code_bytes));
 
                 if let Some(left_node) = left {
                     let mut cursor = left_node.walk();
@@ -382,6 +376,7 @@ impl<'a> GolangTreeSitter<'a> {
                         _ => {}
                     }
                 }
+                self.walk_children(node, code_bytes);
             }
 
             // everything else, just walk children
@@ -403,34 +398,159 @@ impl<'a> GolangTreeSitter<'a> {
         for child in params_node.children(&mut cursor) {
             if child.kind() == "parameter_declaration" {
                 if let Some(name_node) = child.child_by_field_name("name") {
-                    let name = name_node.utf8_text(code_bytes).unwrap_or("").to_string();
-                    self.symbols.push(Symbol {
-                        name,
-                        kind: SymbolKind::Parameter,
-                        file: self.file_path.to_string(),
-                        line: name_node.start_position().row + 1,
-                        column: name_node.start_position().column,
-                        scope: self.current_scope(),
-                        assigned_from: None,
-                    });
+                    match name_node.kind() {
+                        // func foo(a int)
+                        "identifier" => {
+                            let name = name_node.utf8_text(code_bytes).unwrap_or("").to_string();
+                            self.symbols.push(Symbol {
+                                name,
+                                kind: SymbolKind::Parameter,
+                                file: self.file_path.to_string(),
+                                line: name_node.start_position().row + 1,
+                                column: name_node.start_position().column,
+                                scope: self.current_scope(),
+                                assigned_from: None,
+                            });
+                        }
+                        // func foo(a, b int)
+                        "identifier_list" => {
+                            let mut id_cursor = name_node.walk();
+                            for ident in name_node.children(&mut id_cursor) {
+                                if ident.kind() == "identifier" {
+                                    let name =
+                                        ident.utf8_text(code_bytes).unwrap_or("").to_string();
+                                    self.symbols.push(Symbol {
+                                        name,
+                                        kind: SymbolKind::Parameter,
+                                        file: self.file_path.to_string(),
+                                        line: ident.start_position().row + 1,
+                                        column: ident.start_position().column,
+                                        scope: self.current_scope(),
+                                        assigned_from: None,
+                                    });
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
                 }
             }
         }
     }
 
     fn collect_import_spec(&mut self, node: tree_sitter::Node, code: &[u8]) {
-        if let Some(path_node) = node.child_by_field_name("path") {
-            let raw = path_node.utf8_text(code).unwrap_or("\"\"");
-            let name = raw.trim_matches('"').to_string();
-            self.symbols.push(Symbol {
-                name,
-                kind: SymbolKind::Import,
-                file: self.file_path.to_string(),
-                line: path_node.start_position().row + 1,
-                column: path_node.start_position().column,
-                scope: "global".to_string(),
-                assigned_from: None,
-            });
+        let path_node = match node.child_by_field_name("path") {
+            Some(n) => n,
+            None => return,
+        };
+
+        let raw_path = path_node.utf8_text(code).unwrap_or("").trim_matches('"');
+        let assigned_from = Some(raw_path.to_string());
+
+        let local_name = if let Some(name_node) = node.child_by_field_name("name") {
+            // local name defined
+            // i.e. alias exists:
+            // import models "example.com/models"
+            // becomes models
+
+            name_node.utf8_text(code).unwrap().to_string()
+        } else {
+            // local name empty,
+            // i.e. no alias:
+            // import "database/sql"
+            // becomes sql
+
+            raw_path.split('/').next_back().unwrap().to_string()
+        };
+
+        self.symbols.push(Symbol {
+            name: local_name.to_string(),
+            kind: SymbolKind::Import,
+            file: self.file_path.to_string(),
+            line: path_node.start_position().row + 1,
+            column: path_node.start_position().column,
+            scope: "global".to_string(),
+            assigned_from: assigned_from.map(AssignedFrom::Import),
+        });
+    }
+
+    fn rhs_to_assigned_from(
+        &self,
+        node: tree_sitter::Node,
+        code_bytes: &[u8],
+    ) -> Option<AssignedFrom> {
+        match node.kind() {
+            // x := y
+            "identifier" => {
+                let name = node.utf8_text(code_bytes).ok()?.to_string();
+                Some(AssignedFrom::Identifier(name))
+            }
+
+            // x := r.Body  /  x := db.conn
+            "selector_expression" => {
+                let object = node
+                    .child_by_field_name("operand")
+                    .and_then(|o| o.utf8_text(code_bytes).ok())
+                    .unwrap_or("")
+                    .to_string();
+                let property = node
+                    .child_by_field_name("field")
+                    .and_then(|f| f.utf8_text(code_bytes).ok())
+                    .unwrap_or("")
+                    .to_string();
+                Some(AssignedFrom::Member { object, property })
+            }
+
+            // x := foo(a, b)  /  x := db.Query(sql)
+            "call_expression" => {
+                let func_node = node.child_by_field_name("function")?;
+                let callee = match func_node.kind() {
+                    "identifier" => func_node.utf8_text(code_bytes).ok()?.to_string(),
+                    "selector_expression" => {
+                        let obj = func_node
+                            .child_by_field_name("operand")
+                            .and_then(|o| o.utf8_text(code_bytes).ok())
+                            .unwrap_or("");
+                        let field = func_node
+                            .child_by_field_name("field")
+                            .and_then(|f| f.utf8_text(code_bytes).ok())
+                            .unwrap_or("");
+                        format!("{}.{}", obj, field)
+                    }
+                    _ => func_node.utf8_text(code_bytes).ok()?.to_string(),
+                };
+
+                let arguments = node
+                    .child_by_field_name("arguments")
+                    .map(|args| {
+                        let mut cursor = args.walk();
+                        args.children(&mut cursor)
+                            .filter(|c| c.kind() != "," && c.kind() != "(" && c.kind() != ")")
+                            .filter_map(|c| c.utf8_text(code_bytes).ok())
+                            .map(|s| s.to_string())
+                            .collect()
+                    })
+                    .unwrap_or_default();
+
+                Some(AssignedFrom::Call { callee, arguments })
+            }
+
+            // x := "hello"  /  x := 42  /  x := true
+            "interpreted_string_literal"
+            | "raw_string_literal"
+            | "int_literal"
+            | "float_literal"
+            | "true"
+            | "false" => {
+                let val = node.utf8_text(code_bytes).ok()?.to_string();
+                Some(AssignedFrom::Literal(val))
+            }
+
+            // x := a + b  /  x := arr[i]  etc
+            _ => {
+                let val = node.utf8_text(code_bytes).ok()?.to_string();
+                Some(AssignedFrom::Expression(val))
+            }
         }
     }
 
@@ -503,9 +623,5 @@ impl<'a> GolangTreeSitter<'a> {
             symbols: self.symbols,
             calls: self.calls,
         }
-    }
-
-    pub fn list_possible_threats(self) -> Vec<Findings> {
-        self.findings
     }
 }

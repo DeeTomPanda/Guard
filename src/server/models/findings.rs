@@ -94,10 +94,6 @@ impl PartialEq for VulnerabilityType {
                 )
         )
     }
-
-    fn ne(&self, other: &Self) -> bool {
-        !self.eq(other)
-    }
 }
 
 impl Debug for Severity {

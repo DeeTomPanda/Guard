@@ -43,7 +43,6 @@ impl OWASPScanner {
             None => return dummy,
         };
 
-        
         scanner.scan(codebase, file_path)
     }
 

@@ -1,14 +1,13 @@
 use crate::server::models::{
     calls::{CallSite, CallTable},
     resolution::{ResolutionTable, ResolvedArgument, ResolvedCall, ResolvedVariable},
-    symbols::{Symbol, SymbolKind, SymbolTable},
+    symbols::{AssignedFrom, Symbol, SymbolKind, SymbolTable},
 };
 
 pub struct Resolver;
 
 impl Resolver {
-    // for now only resolves calls
-    // TODO add vars, imports etc
+    // resolve calls and variables
     pub fn resolve(symbol_table: &SymbolTable, call_table: &CallTable) -> ResolutionTable {
         let mut resolution_table = ResolutionTable::new();
 
@@ -61,22 +60,18 @@ impl Resolver {
     fn resolve_variables(res_table: &mut ResolutionTable, symbol_table: &SymbolTable) {
         for (file, symbols) in &symbol_table.symbols {
             for symbol in symbols {
-                match symbol.kind {
-                    SymbolKind::Variable => {
-                        let chain =
-                            Self::resolve_chain(&symbol.name, &symbol.scope, file, symbol_table, 0);
+                // Functions, parameters, etc are not data flow variables
+                if symbol.kind == SymbolKind::Variable {
+                    let chain =
+                        Self::resolve_chain(&symbol.name, &symbol.scope, file, symbol_table, 0);
 
-                        if !chain.is_empty() {
-                            res_table.variables.push(ResolvedVariable {
-                                name: symbol.name.to_string(),
-                                chain,
-                            });
-                        }
+                    if !chain.is_empty() {
+                        res_table.variables.push(ResolvedVariable {
+                            name: symbol.name.to_string(),
+                            chain,
+                        });
                     }
-                    // TODO add imports
-                    // Functions, parameters, etc are not data flow variables
-                    _ => {}
-                };
+                }
             }
         }
     }
@@ -109,7 +104,10 @@ impl Resolver {
             .and_then(|v| v.first())
             .cloned();
 
-        let Some(s) = sym else { return vec![] };
+        let Some(s) = sym else {
+            // not found locally — check imports before giving up
+            return Self::resolve_via_import(name, file, symbol_table, depth);
+        };
 
         let mut chain = vec![s.clone()];
 
@@ -119,9 +117,25 @@ impl Resolver {
 
             // is Variable, chase what it was assigned from
             SymbolKind::Variable => {
-                if let Some(ref rhs) = s.assigned_from {
-                    let mut rest = Self::resolve_chain(rhs, scope, file, symbol_table, depth + 1);
-                    chain.append(&mut rest);
+                match s.assigned_from {
+                    Some(AssignedFrom::Identifier(ref rhs)) => {
+                        // chase: x = y → follow y
+                        let mut rest =
+                            Self::resolve_chain(rhs, scope, file, symbol_table, depth + 1);
+                        chain.append(&mut rest);
+                    }
+                    Some(AssignedFrom::Call { .. })
+                    | Some(AssignedFrom::Member { .. })
+                    | Some(AssignedFrom::Expression(_)) => {
+                        // origin node — taint engine reads assigned_from directly,
+                        // no further symbol to look up
+                    }
+                    Some(AssignedFrom::Literal(_)) | None => {
+                        // safe / unresolvable, stop
+                    }
+                    Some(AssignedFrom::Import(_)) => {
+                        // shouldn't happen on a Variable, but handle cleanly
+                    }
                 }
             }
 
@@ -139,25 +153,43 @@ impl Resolver {
         chain
     }
 
-    // Cross-file resolution via import symbols.
-    // Requires parsers to store the resolved source path in assigned_from
-    // Currently a stub (to hanlde path normalization)
+    // called when a name isn't found in the local index.
+    // checks if it resolves via an import before giving up.
+    fn resolve_via_import(name: &str, file: &str, st: &SymbolTable, depth: usize) -> Vec<Symbol> {
+        match Self::resolve_import(name, file, st) {
+            Some(resolved) => Self::resolve_chain(
+                &resolved.name,
+                &resolved.scope,
+                &resolved.file,
+                st,
+                depth + 1,
+            ),
+            None => vec![],
+        }
+    }
+
+    /// translate import name → real Symbol in source file using import_index.
+    /// O(1) index lookup + O(candidates) verification against SymbolTable.
+    /// No path logic here — parsers stored stems, build_index matched them to real files.
     fn resolve_import(name: &str, file: &str, st: &SymbolTable) -> Option<Symbol> {
-        let imports = st.symbols.get(file)?;
+        let source_files = st.import_index.get(file)?.get(name)?;
 
-        let import_sym = imports
-            .iter()
-            .find(|s| s.kind == SymbolKind::Import && s.name == name)?;
-
-        // assigned_from holds resolved source path e.g. "/project/src/utils.js"
-        let source_file = import_sym.assigned_from.as_ref()?;
-
-        st.symbols
-            .get(source_file)?
-            .iter()
-            .find(|s| {
-                s.name == name && matches!(s.kind, SymbolKind::Function | SymbolKind::Variable)
-            })
-            .cloned()
+        // check each candidate — the one that actually declares the symbol wins
+        source_files.iter().find_map(|source_file| {
+            st.index
+                .get(source_file)?
+                .get(&format!("{}::global", name))
+                .and_then(|syms| {
+                    syms.iter().find(|s| {
+                        // TODO: add tiebreaker here
+                        s.name == name
+                            && matches!(
+                                s.kind,
+                                SymbolKind::Function | SymbolKind::Variable | SymbolKind::Method
+                            )
+                    })
+                })
+                .cloned()
+        })
     }
 }

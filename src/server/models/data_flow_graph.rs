@@ -24,7 +24,6 @@ impl From<&SymbolKind> for NodeKind {
     }
 }
 
-#[derive(Debug, Clone)]
 pub struct GraphNode {
     pub name: String,
     pub kind: NodeKind,
@@ -86,6 +85,17 @@ impl DataFlowGraph {
             .and_then(|m| m.get(name))
             .and_then(|v| v.first());
 
+        let found = found.or_else(|| {
+            st.import_index
+                .get(file)
+                .and_then(|imp| imp.get(name))
+                .and_then(|source_files| {
+                    source_files
+                        .iter()
+                        .find_map(|src| st.fn_index.get(src)?.get(name)?.first())
+                })
+        });
+
         let (key, node) = match found {
             Some(sym) => (
                 format!("{}::{}::{}", sym.name, sym.scope, sym.file), // scope-qualified, collision-safe
@@ -145,7 +155,7 @@ impl DataFlowGraph {
             .find(|(_, n)| n.name == name && n.file == file)
     }
 
-    pub fn node_key(&self, name: &str, file: &str) -> String {
-        format!("{}::{}", name, file)
+    pub fn node_key(&self, name: &str, scope: &str, file: &str) -> String {
+        format!("{}::{}::{}", name, scope, file)
     }
 }

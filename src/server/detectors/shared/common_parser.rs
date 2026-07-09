@@ -3,7 +3,7 @@ use crate::server::models::{
     calls::CallSite,
     findings::{Severity, VulnerabilityType},
     results::ScanResult,
-    symbols::{Symbol, SymbolKind},
+    symbols::{AssignedFrom, Symbol, SymbolKind},
 };
 use crate::Findings;
 use oxc::ast_visit::Visit;
@@ -24,7 +24,7 @@ pub struct CodeVisitor<'a> {
 
 impl<'a> CodeVisitor<'a> {
     pub fn new(file_path: &'a str, source_text: &'a str) -> Self {
-        // feault start for all files
+        // default start for all files
         let mut line_starts = vec![0];
 
         // loop through entire file bytes for start
@@ -46,6 +46,82 @@ impl<'a> CodeVisitor<'a> {
         }
     }
 
+    // convert code to AST using oxc parser
+    pub fn parse_to_ast(
+        code: &'a str,
+        allocator: &'a Allocator,
+        file_path: &str,
+    ) -> Result<oxc::ast::ast::Program<'a>, String> {
+        let source_type = SourceType::from_path(file_path).unwrap_or_default();
+
+        let ret = Parser::new(allocator, code, source_type).parse();
+
+        if ret.errors.is_empty() {
+            return Ok(ret.program);
+        }
+        // .js files can legally contain JSX (common in React projects)
+        // if we see JSX errors, retry with JSX enabled before giving up
+        let has_jsx_error = ret.errors.iter().any(|e| {
+            let msg = e.to_string();
+            msg.contains("JSX")
+                || msg.contains("Unexpected JSX")
+                || msg.contains("Unexpected token `<`")
+        });
+
+        if has_jsx_error {
+            let jsx_source_type = source_type.with_jsx(true);
+            let jsx_ret = Parser::new(allocator, code, jsx_source_type).parse();
+
+            if jsx_ret.errors.is_empty() {
+                return Ok(jsx_ret.program);
+            }
+
+            // JSX retry also failed — report the original errors, not the retry
+            return Err(ret
+                .errors
+                .iter()
+                .map(|e| e.to_string())
+                .collect::<Vec<_>>()
+                .join("\n"));
+        }
+
+        // second retry: TS syntax in a .js file
+        let ts_source_type = source_type.with_typescript(true).with_jsx(true); // enable both since they often co-occur
+
+        let ts_ret = Parser::new(allocator, code, ts_source_type).parse();
+        if ts_ret.errors.is_empty() {
+            return Ok(ts_ret.program);
+        }
+
+        // non-JSX parse error
+        Err(ret
+            .errors
+            .iter()
+            .map(|e| e.to_string())
+            .collect::<Vec<_>>()
+            .join("\n"))
+    }
+
+    // only returns the stem, extension resolving is at 'Resolver'
+    pub fn resolve_import_path(&self, import_path: &str) -> Option<String> {
+        if import_path.starts_with('.') || import_path.starts_with('/') {
+            let base_dir = std::path::Path::new(&self.file_path)
+                .parent()
+                .unwrap_or_else(|| std::path::Path::new("."));
+
+            // just normalize to absolute stem — no extension probing
+            Some(
+                base_dir
+                    .join(import_path)
+                    .to_string_lossy()
+                    .replace("/./", "/")
+                    .to_string(),
+            )
+        } else {
+            Some(import_path.to_string()) // node_modules — leave as-is
+        }
+    }
+
     // get scope of element, i.e. wher they were declared
     fn current_scope(&self) -> String {
         if self.scope_stack.is_empty() {
@@ -53,11 +129,6 @@ impl<'a> CodeVisitor<'a> {
         } else {
             self.scope_stack.join("::")
         }
-    }
-
-    fn span_to_line(&self, span_start: usize) -> usize {
-        let safe = span_start.min(self.source_text.len());
-        self.source_text[..safe].lines().count() + 1
     }
 
     fn offset_to_line_col(&self, pos: usize) -> (usize, usize) {
@@ -89,10 +160,6 @@ impl<'a> CodeVisitor<'a> {
         });
     }
 
-    pub fn list_possible_threats(self) -> Vec<Findings> {
-        self.findings
-    }
-
     pub fn into_scan_result(self) -> ScanResult {
         ScanResult {
             findings: self.findings,
@@ -104,69 +171,130 @@ impl<'a> CodeVisitor<'a> {
 
 // visitor implementation for AST traversal
 impl<'a> Visit<'a> for CodeVisitor<'a> {
-    // let var a=1;
     fn visit_variable_declarator(&mut self, node: &VariableDeclarator<'a>) {
-        let assigned_from = node.init.as_ref().map(|init| {
-            let start = init.span().start as usize;
-            let end = init.span().end as usize;
-            self.source_text[start..end].to_string()
-        });
-        // get variable name from AST first
-        if let BindingPattern::BindingIdentifier(ident) = &node.id {
-            self.symbols.push(Symbol {
-                name: ident.name.to_string(),
-                kind: SymbolKind::Variable,
-                file: self.file_path.to_string(),
-                line: self.span_to_line(node.span.start as usize),
-                column: node.span.start as usize,
-                scope: self.current_scope(),
-                assigned_from,
-            });
+        // unwrap `satisfies` or `as` or `!` assertions before checking the shape
+        let node_init = node.init.as_ref().map(unwrap_ts_expression);
+        let (line, column) = self.offset_to_line_col(node.span.start as usize);
 
-            // unwrap `satisfies` or `as` or `!` assertions before checking the shape
-            let init = node.init.as_ref().map(unwrap_ts_expression);
-            // check for Object Pattern like const { password }= config;
-            if let Some(Expression::ObjectExpression(obj_lit)) = init {
-                // iterate through properties of object
-                for prop in &obj_lit.properties {
-                    if let oxc_ast::ast::ObjectPropertyKind::ObjectProperty(prop) = prop {
-                        if let oxc_ast::ast::PropertyKey::StaticIdentifier(ident) = &prop.key {
-                            let key_name = ident.name.to_lowercase();
-                            if is_secret_name(&key_name) {
-                                // check if the value is a string literal or template literal without expressions
-                                let value = &prop.value;
-                                if let Some(value) = is_hardcoded_secret(value) {
-                                    self.report(
-                                        &value,
-                                        prop.span(),
-                                        VulnerabilityType::HardcodedSecret,
-                                        Severity::Critical,
-                                    );
+        let assigned_from = get_assigned_from(node_init, self.source_text);
+        // check if the var declaration has a function call
+        if let Some(Expression::CallExpression(call)) = node_init {
+            if let Expression::Identifier(callee) = &call.callee {
+                // imports
+                if callee.name == "require" {
+                    if let Some(arg) = call.arguments.first() {
+                        if let Some(Expression::StringLiteral(lit)) = arg.as_expression() {
+                            // shadow assigned_from here — require() is always an import
+                            let assigned_from = self
+                                .resolve_import_path(&lit.value)
+                                .map(AssignedFrom::Import);
+                            // CommonJS imports via require()
+                            // e.g. module.exports = require('./lib/express');
+                            // var debug = require('debug');
+                            // const db = require("./db")
+                            match &node.id {
+                                // const db = require("./db");
+                                BindingPattern::BindingIdentifier(ident) => {
+                                    self.symbols.push(Symbol {
+                                        name: ident.name.to_string(),
+                                        kind: SymbolKind::Import,
+                                        file: self.file_path.to_string(),
+                                        line,
+                                        column,
+                                        scope: self.current_scope(),
+                                        assigned_from,
+                                    });
+                                    return;
                                 }
-                            }
-                        }
-                    }
-                }
-            } else {
-                // then check for normal variable declaration like const password
-                let var_name = ident.name.to_lowercase();
+                                // const { buildQuery } = require("./utils");
+                                BindingPattern::ObjectPattern(obj) => {
+                                    // loop because 'name' is no provided directly
+                                    for property in &obj.properties {
+                                        let local_name = match &property.value {
+                                            BindingPattern::BindingIdentifier(ident) => {
+                                                ident.name.to_string()
+                                            }
+                                            _ => continue,
+                                        };
 
-                // check if variable name contains keywords commonly associated with secrets
-                if is_secret_name(&var_name) {
-                    // determine what type of expression is associated, must be string literal or template literal without expressions
-                    if let Some(init) = &node.init {
-                        if let Some(value) = is_hardcoded_secret(init) {
-                            self.report(
-                                &value,
-                                init.span(),
-                                VulnerabilityType::HardcodedSecret,
-                                Severity::Critical,
-                            );
+                                        self.symbols.push(Symbol {
+                                            name: local_name,
+                                            kind: SymbolKind::Import,
+                                            file: self.file_path.to_string(),
+                                            line,
+                                            column,
+                                            scope: self.current_scope(),
+                                            assigned_from: assigned_from.clone(),
+                                        });
+                                    }
+                                    return;
+                                }
+                                _ => {}
+                            }
                         }
                     }
                 }
             }
         }
+
+        // get variable name from AST if not a call expression
+        let var_names = collect_binding_names(&node.id);
+
+        for var in &var_names {
+            self.symbols.push(Symbol {
+                name: var.to_string(),
+                kind: SymbolKind::Variable,
+                file: self.file_path.to_string(),
+                line,
+                column,
+                scope: self.current_scope(),
+                assigned_from: assigned_from.clone(),
+            });
+        }
+
+        // check object literals like:
+        // const config = { password: "secret" };
+        if let Some(Expression::ObjectExpression(obj_lit)) = node_init {
+            // iterate through properties of object
+            for prop in &obj_lit.properties {
+                if let oxc_ast::ast::ObjectPropertyKind::ObjectProperty(prop) = prop {
+                    if let oxc_ast::ast::PropertyKey::StaticIdentifier(ident) = &prop.key {
+                        let key_name = ident.name.to_lowercase();
+                        if is_secret_name(&key_name) {
+                            // check if the value is a string literal or template literal without expressions
+                            let value = &prop.value;
+                            if let Some(_value) = is_hardcoded_secret(value) {
+                                // self.report(
+                                //     &value,
+                                //     prop.span(),
+                                //     VulnerabilityType::HardcodedSecret,
+                                //     Severity::Critical,
+                                // );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for var in &var_names {
+            let var_name = var.to_lowercase();
+            // check if variable name contains keywords commonly associated with secrets
+            if is_secret_name(&var_name) {
+                // determine what type of expression is associated, must be string literal or template literal without expressions
+                if let Some(init) = &node.init {
+                    if let Some(_value) = is_hardcoded_secret(init) {
+                        // self.report(
+                        //     &value,
+                        //     init.span(),
+                        //     VulnerabilityType::HardcodedSecret,
+                        //     Severity::Critical,
+                        // );
+                    }
+                }
+            }
+        }
+
         // recurse into child, i.e deep traversal
         oxc::ast_visit::walk::walk_variable_declarator(self, node);
     }
@@ -175,8 +303,8 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
     fn visit_new_expression(&mut self, node: &NewExpression<'a>) {
         if let Expression::Identifier(ident) = &node.callee {
             if ident.name.as_str() == "Function" {
-                let name = ident.name.as_str();
-                self.report(name, node.span(), VulnerabilityType::Eval, Severity::High);
+                let _name = ident.name.as_str();
+                // self.report(name, node.span(), VulnerabilityType::Eval, Severity::High);
             }
         }
         // walk into children and recurse
@@ -214,28 +342,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                 let name = ident.name.as_str();
 
                 if is_dangerous_call(name) {
-                    self.report(name, node.span(), VulnerabilityType::Eval, Severity::High);
-                }
-
-                // CommonJS imports via require()
-                // e.g. module.exports = require('./lib/express');
-                // var debug = require('debug');
-                if name == "require" {
-                    if let Some(first_arg) = node.arguments.first() {
-                        if let Some(expr) = first_arg.as_expression() {
-                            if let Expression::StringLiteral(lit) = expr {
-                                self.symbols.push(Symbol {
-                                    name: lit.value.to_string(),
-                                    kind: SymbolKind::Import,
-                                    file: self.file_path.to_string(),
-                                    line: self.span_to_line(node.span.start as usize),
-                                    column: node.span.start as usize,
-                                    scope: self.current_scope(),
-                                    assigned_from: None,
-                                });
-                            }
-                        }
-                    }
+                    // self.report(name, node.span(), VulnerabilityType::Eval, Severity::High);
                 }
 
                 self.calls.push(CallSite {
@@ -282,28 +389,28 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                         if contains_sql_keyword(expr) && contains_dynamic_value(expr) {
                             let start = expr.span().start as usize;
                             let end = expr.span().end as usize;
-                            let snippet = &self.source_text[start..end];
-                            self.report(
-                                snippet,
-                                node.span(),
-                                VulnerabilityType::SQLInjection,
-                                Severity::Critical,
-                            );
+                            let _snippet = &self.source_text[start..end];
+                            // self.report(
+                            //     snippet,
+                            //     node.span(),
+                            //     VulnerabilityType::SQLInjection,
+                            //     Severity::Critical,
+                            // );
                         }
                     }
-                    // flag if concatenated SQl with no params
+                    // flag if concatenated SQL with no params
                     Expression::BinaryExpression(_) => {
                         let has_params = node.arguments.len() > 1;
                         if !has_params {
                             let start = expr.span().start as usize;
                             let end = expr.span().end as usize;
-                            let snippet = &self.source_text[start..end];
-                            self.report(
-                                snippet,
-                                node.span(),
-                                VulnerabilityType::SQLInjection,
-                                Severity::Critical,
-                            );
+                            let _snippet = &self.source_text[start..end];
+                            // self.report(
+                            //     snippet,
+                            //     node.span(),
+                            //     VulnerabilityType::SQLInjection,
+                            //     Severity::Critical,
+                            // );
                         }
                     }
 
@@ -315,15 +422,15 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
         oxc::ast_visit::walk::walk_call_expression(self, node);
     }
 
-    // let a as int?
+    // let a as int
     fn visit_ts_as_expression(&mut self, node: &TSAsExpression<'a>) {
         if let TSType::TSAnyKeyword(_) = &node.type_annotation {
-            self.report(
-                "as any",
-                node.span(),
-                VulnerabilityType::UnsafeTypeAssertion,
-                Severity::Low,
-            );
+            // self.report(
+            //     "as any",
+            //     node.span(),
+            //     VulnerabilityType::UnsafeTypeAssertion,
+            //     Severity::Low,
+            // );
         }
         // manual call to delve deeper !
         // because we manully need to walk over transparent wrappers!
@@ -340,6 +447,7 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
         if let Some(id) = &node.id {
             let name = id.name.to_string();
             let scope = self.current_scope();
+            let (line, column) = self.offset_to_line_col(node.span.start as usize);
 
             let kind = match scope.as_str() {
                 "global" => SymbolKind::Function,
@@ -350,8 +458,8 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                 name: name.clone(),
                 kind,
                 file: self.file_path.to_string(),
-                line: self.span_to_line(node.span.start as usize),
-                column: node.span.start as usize,
+                line,
+                column,
                 scope,
                 assigned_from: None,
             });
@@ -366,8 +474,8 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                         name: ident.name.to_string(),
                         kind: SymbolKind::Parameter,
                         file: self.file_path.to_string(),
-                        line: self.span_to_line(param.span.start as usize),
-                        column: param.span.start as usize,
+                        line,
+                        column,
                         scope: self.current_scope(),
                         assigned_from: None,
                     });
@@ -386,13 +494,14 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
     fn visit_class(&mut self, node: &oxc_ast::ast::Class<'a>) {
         if let Some(id) = &node.id {
             let name = id.name.to_string();
+            let (line, column) = self.offset_to_line_col(node.span.start as usize);
 
             self.symbols.push(Symbol {
                 name: name.clone(),
                 kind: SymbolKind::Class,
                 file: self.file_path.to_string(),
-                line: self.span_to_line(node.span.start as usize),
-                column: node.span.start as usize,
+                line,
+                column,
                 scope: self.current_scope(),
                 assigned_from: None,
             });
@@ -409,17 +518,19 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
     // e.g.
     /* class App{
         method(ab){}
-    } */
+        }
+    */
     fn visit_method_definition(&mut self, node: &oxc_ast::ast::MethodDefinition<'a>) {
         if let oxc_ast::ast::PropertyKey::StaticIdentifier(ident) = &node.key {
             let name = ident.name.to_string();
+            let (line, column) = self.offset_to_line_col(node.span.start as usize);
 
             self.symbols.push(Symbol {
                 name: name.clone(),
                 kind: SymbolKind::Method,
                 file: self.file_path.to_string(),
-                line: self.span_to_line(node.span.start as usize),
-                column: node.span.start as usize,
+                line,
+                column,
                 scope: self.current_scope(),
                 assigned_from: None,
             });
@@ -434,8 +545,8 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                         name: ident.name.to_string(),
                         kind: SymbolKind::Parameter,
                         file: self.file_path.to_string(),
-                        line: self.span_to_line(param.span.start as usize),
-                        column: param.span.start as usize,
+                        line,
+                        column,
                         scope: self.current_scope(), // now inside method scope
                         assigned_from: None,
                     });
@@ -452,14 +563,21 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
     // e.g. import 'express' from express
     fn visit_import_declaration(&mut self, node: &oxc_ast::ast::ImportDeclaration<'a>) {
         if let Some(specifiers) = &node.specifiers {
+            let import_source = node.source.value.as_str();
+            let resolved_path = self.resolve_import_path(import_source);
+            let (line, column) = self.offset_to_line_col(node.span.start as usize);
+
             for specifier in specifiers {
                 let name = match specifier {
+                    // handles import { query } from "./db"; (or) import { query as runQuery } from "./db";
                     oxc_ast::ast::ImportDeclarationSpecifier::ImportSpecifier(s) => {
                         s.local.name.to_string()
                     }
+                    // handles import express from "express";
                     oxc_ast::ast::ImportDeclarationSpecifier::ImportDefaultSpecifier(s) => {
                         s.local.name.to_string()
                     }
+                    // handles import * as fs from "fs";
                     oxc_ast::ast::ImportDeclarationSpecifier::ImportNamespaceSpecifier(s) => {
                         s.local.name.to_string()
                     }
@@ -469,10 +587,10 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
                     name,
                     kind: SymbolKind::Import,
                     file: self.file_path.to_string(),
-                    line: self.span_to_line(node.span.start as usize),
-                    column: node.span.start as usize,
+                    line,
+                    column,
                     scope: "global".to_string(), // imports are always global
-                    assigned_from: None,
+                    assigned_from: resolved_path.clone().map(AssignedFrom::Import),
                 });
             }
         }
@@ -480,24 +598,135 @@ impl<'a> Visit<'a> for CodeVisitor<'a> {
     }
 }
 
-// convert code to AST using oxc parser
-pub fn parse_to_ast<'a>(
-    code: &'a str,
-    allocator: &'a Allocator,
-    file_path: &str,
-) -> Result<oxc::ast::ast::Program<'a>, String> {
-    let source_type = SourceType::from_path(file_path).unwrap_or_default();
+// function to collect vars of differnt types
+fn collect_binding_names<'a>(pattern: &BindingPattern<'a>) -> Vec<String> {
+    match pattern {
+        // const password = "secret!";
+        BindingPattern::BindingIdentifier(ident) => {
+            vec![ident.name.to_string()]
+        }
 
-    let ret = Parser::new(allocator, code, source_type).parse();
+        // const { key,secret } = object;
+        BindingPattern::ObjectPattern(obj) => {
+            let mut names = Vec::new();
 
-    if ret.errors.is_empty() {
-        Ok(ret.program)
-    } else {
-        Err(ret
-            .errors
-            .iter()
-            .map(|e| e.to_string())
-            .collect::<Vec<_>>()
-            .join("\n"))
+            for property in &obj.properties {
+                let name = match &property.value {
+                    BindingPattern::BindingIdentifier(ident) => Some(ident.name.to_string()),
+
+                    _ => None,
+                };
+
+                if let Some(name) = name {
+                    names.push(name);
+                }
+            }
+
+            names
+        }
+
+        // const [a,b] = array;
+        BindingPattern::ArrayPattern(arr) => {
+            let mut names = Vec::new();
+
+            for element in &arr.elements {
+                if let Some(BindingPattern::BindingIdentifier(ident)) = element {
+                    names.push(ident.name.to_string());
+                }
+            }
+
+            names
+        }
+
+        _ => {
+            vec![]
+        }
     }
+}
+
+fn get_assigned_from<'a>(
+    node_init: Option<&Expression<'a>>,
+    source_text: &str,
+) -> Option<AssignedFrom> {
+    node_init.map(|expr| match expr {
+        // const x = y;
+        // tracks identifier so resolver can chase the chain: x → y → ...
+        Expression::Identifier(id) => AssignedFrom::Identifier(id.name.to_string()),
+
+        // const x = "hello";
+        // const x = 42;
+        // literal origin — chain stops here, nothing to resolve further
+        Expression::StringLiteral(lit) => AssignedFrom::Literal(lit.value.to_string()),
+        Expression::NumericLiteral(num) => AssignedFrom::Literal(num.value.to_string()),
+
+        // const id = req.body.id;
+        // const db = config.database;
+        // split into object + property so taint engine can check
+        // if the object (e.g. "req.body") is a known taint source
+        Expression::StaticMemberExpression(member) => {
+            let property = member.property.name.to_string();
+            // use span to capture the full object text, e.g. "req.body" not just "req"
+            let object = {
+                let start = member.object.span().start as usize;
+                let end = member.object.span().end as usize;
+                source_text[start..end].to_string()
+            };
+            AssignedFrom::Member { object, property }
+        }
+
+        // const result = buildQuery("users", id);
+        // const conn = db.connect();
+        // records callee + raw argument text so resolver can:
+        //   1. look up where callee is defined (cross-file via import_index)
+        //   2. check if any argument is tainted
+        Expression::CallExpression(call) => {
+            let callee = match unwrap_ts_expression(&call.callee) {
+                // plain call: foo(...)
+                Expression::Identifier(id) => id.name.to_string(),
+
+                // method call: db.query(...) → "db.query"
+                // object captured via span to handle chained members e.g. "req.db"
+                Expression::StaticMemberExpression(m) => {
+                    format!(
+                        "{}.{}",
+                        {
+                            let s = m.object.span().start as usize;
+                            let e = m.object.span().end as usize;
+                            &source_text[s..e]
+                        },
+                        m.property.name
+                    )
+                }
+
+                // fallback: computed or wrapped callee — just grab the raw text
+                other => {
+                    let s = other.span().start as usize;
+                    let e = other.span().end as usize;
+                    source_text[s..e].to_string()
+                }
+            };
+
+            // capture each argument as raw source text so the taint engine
+            // can later resolve them individually (e.g. is `id` tainted?)
+            let arguments: Vec<String> = call
+                .arguments
+                .iter()
+                .filter_map(|a| a.as_expression())
+                .map(|e| source_text[e.span().start as usize..e.span().end as usize].to_string())
+                .collect();
+
+            AssignedFrom::Call { callee, arguments }
+        }
+
+        // const x = a + b;
+        // const y = arr[i];
+        // const z = condition ? a : b;
+        // doesn't fit a specific category — store raw text for the taint
+        // engine to inspect directly, chain resolution stops here
+        other => {
+            let s = other.span().start as usize;
+            let e = other.span().end as usize;
+            AssignedFrom::Expression(source_text[s..e].to_string())
+        }
+    })
 }
