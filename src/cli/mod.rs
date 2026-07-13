@@ -8,13 +8,14 @@ use crate::server::taint_engine::data_flow_graph::DataFlowGraphBuilder;
 use crate::AppState;
 use crate::{
     server::{
+        guard::Guard,
         models::{
             calls::{CallSite, CallTable},
-            data_flow_graph::{DataFlowGraph,EdgeKind,NodeKind},
+            data_flow_graph::{DataFlowGraph, EdgeKind, NodeKind},
             findings::{severity_order, FinalFindings},
             symbols::{Symbol, SymbolTable},
         },
-        service::OWASPScanner,
+        module_resolver::ImportResolver,
         taint_engine::resolve::Resolver,
     },
     state::ScanData,
@@ -22,15 +23,21 @@ use crate::{
 
 // start the scan of the directory
 pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
-    let owasp_scanner = OWASPScanner::new();
-    let entries: Vec<_> = WalkBuilder::new(&path)
+    // canonicalize here, make everyting absolute
+    let canonical_path = std::fs::canonicalize(&path)
+        .expect("scan path must exist")
+        .to_string_lossy()
+        .into_owned();
+
+    let guard_scanner = Guard::new();
+    let entries: Vec<_> = WalkBuilder::new(&canonical_path)
         .hidden(false)
         .git_ignore(true)
         .git_global(true)
         .git_exclude(true)
         .build()
         .filter_map(|e| e.ok())
-        .filter(|e| OWASPScanner::determine_language(&e.path().to_string_lossy()).is_some())
+        .filter(|e| Guard::determine_language(&e.path().to_string_lossy()).is_some())
         .collect();
 
     // collect both findings AND symbols AND callsites in parallel
@@ -40,7 +47,7 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
             let path = entry.path();
             match std::fs::read_to_string(path) {
                 Ok(content) => {
-                    let mut scan_result = owasp_scanner.scan(&content, &path.to_string_lossy());
+                    let mut scan_result = guard_scanner.scan(&content, &path.to_string_lossy());
                     if scan_result.findings.is_empty() && scan_result.symbols.is_empty() {
                         return None;
                     }
@@ -49,7 +56,7 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
                         .sort_by_key(|f| severity_order(&f.severity));
                     Some((
                         FinalFindings {
-                            file_name: path.to_string_lossy().to_string(),
+                            file_name: canonical_path.clone(),
                             findings: scan_result.findings,
                         },
                         scan_result.symbols,
@@ -89,7 +96,16 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
             symbol_table.insert(symbol.file.clone(), symbol);
         }
     }
-    symbol_table.build_indexes();
+
+    let all_files: Vec<String> = entries
+        .iter()
+        .map(|p| p.path().to_string_lossy().into_owned())
+        .collect();
+
+    let import_resolver = ImportResolver::new(&canonical_path, &all_files);
+    symbol_table.build_indexes(&import_resolver);
+
+    dbg!(&symbol_table.import_index);
 
     // flatten calls into CallTable
     let mut call_table = CallTable::new();
@@ -117,32 +133,32 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
     //     }
     // }
 
-    // print!("\n");
-    // for (node_id, node) in &graph.nodes {
+    print!("\n");
+    for (node_id, node) in &graph.nodes {
 
-    //     let kind =match node.kind{
-    //         NodeKind::Function=> "function",
-    //         NodeKind::Import=> "import",
-    //         NodeKind::Parameter =>"param",
-    //         NodeKind::Variable => "var"
-    //     };
+        let kind =match node.kind{
+            NodeKind::Function=> "function",
+            NodeKind::Import=> "import",
+            NodeKind::Parameter =>"param",
+            NodeKind::Variable => "var"
+        };
 
-    //     println!("NODE: {} ({})  {}", node_id, node.name, kind);
+        println!("NODE: {} ({})  {}", node_id, node.name, kind);
 
-    //     if let Some(edges) = graph.forward.get(node_id) {
-    //         for edge in edges {
-    //             let rel = match edge.kind {
-    //                 EdgeKind::Calls => "CALLS",
-    //                 EdgeKind::PassedAs(usize) => "ARG",
-    //                 EdgeKind::Assigns=>"ASSIGNMENT"
-    //             };
+        if let Some(edges) = graph.forward.get(node_id) {
+            for edge in edges {
+                let rel = match edge.kind {
+                    EdgeKind::Calls => "CALLS",
+                    EdgeKind::PassedAs(usize) => "ARG",
+                    EdgeKind::Assigns=>"ASSIGNMENT"
+                };
 
-    //             println!("      └── {} → {} ", rel, edge.to);
-    //         }
-    //     }
+                println!("      └── {} → {} ", rel, edge.to);
+            }
+        }
 
-    //     println!();
-    // }
+        println!();
+    }
 
     let scan_id = Uuid::new_v4().to_string();
     let mut state = state.write().await;

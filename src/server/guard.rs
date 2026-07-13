@@ -11,12 +11,12 @@ pub enum Language {
     Java,
     Golang,
 }
-pub struct OWASPScanner {
+pub struct Guard {
     scanners: HashMap<Language, Box<dyn Scanner>>,
     // dyn because its a trait object, we want to store different types of detectors in the same vector
 }
 
-impl OWASPScanner {
+impl Guard {
     pub fn new() -> Self {
         let mut scanners: HashMap<Language, Box<dyn Scanner>> = HashMap::new();
 
@@ -24,7 +24,7 @@ impl OWASPScanner {
         scanners.insert(Language::TypeScript, Box::new(TypeScriptScanner));
         scanners.insert(Language::Golang, Box::new(GolangScanner));
 
-        OWASPScanner { scanners }
+        Guard { scanners }
     }
 
     pub fn scan(&self, codebase: &str, file_path: &str) -> ScanResult {
@@ -46,20 +46,15 @@ impl OWASPScanner {
         scanner.scan(codebase, file_path)
     }
 
-    // this can gow to support more languages
+    // this can grow to support more languages
     pub fn determine_language(file_path: &str) -> Option<Language> {
-        if file_path.ends_with(".js") {
-            Some(Language::JavaScript)
-        } else if file_path.ends_with(".ts") {
-            Some(Language::TypeScript)
-        } else if file_path.ends_with(".py") {
-            Some(Language::Python)
-        } else if file_path.ends_with(".java") {
-            Some(Language::Java)
-        } else if file_path.ends_with(".go") {
-            Some(Language::Golang)
-        } else {
-            None
+        match file_path.rsplit('.').next().unwrap_or("") {
+            "js" | "jsx" | "mjs" | "cjs" => Some(Language::JavaScript),
+            "ts" | "tsx" => Some(Language::TypeScript),
+            "go" => Some(Language::Golang),
+            // "py" => Some(Language::Python),
+            // "java" => Some(Language::Java),
+            _ => None,
         }
     }
 }

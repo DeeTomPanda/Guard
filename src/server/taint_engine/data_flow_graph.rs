@@ -8,7 +8,6 @@ pub struct DataFlowGraphBuilder;
 
 impl DataFlowGraphBuilder {
     // for now builds only from call tables
-    // TODO: add imports
     pub fn build(resolution: &ResolutionTable, symbol_table: &SymbolTable) -> DataFlowGraph {
         let mut graph = DataFlowGraph::new();
         // add functions to graph first
@@ -20,8 +19,8 @@ impl DataFlowGraphBuilder {
 
     fn add_variables(graph: &mut DataFlowGraph, resolution: &ResolutionTable) {
         for var in &resolution.variables {
-            // assigns: walk the chain in window[1] (rhs) → window[0] (lhs) fashion
-            // X = Y means data flows from Y into X → edge: Y → X
+            // assigns: walk the chain in window[1] (rhs) to window[0] (lhs) fashion
+            // X = Y means data flows from Y into X into edge: Y to X
             for window in var.chain.windows(2) {
                 let (lhs, rhs) = (&window[0], &window[1]);
 
@@ -68,7 +67,7 @@ impl DataFlowGraphBuilder {
                 column: call.column,
             };
 
-            // calls edge: caller → callee
+            // calls edge: caller to callee flow
             graph.add_edge(GraphEdge {
                 from: caller_key.clone(),
                 to: callee_key.clone(),
@@ -102,8 +101,8 @@ impl DataFlowGraphBuilder {
                     site: edge_site.clone(),
                 });
 
-                // assigns: walk the chain in window[1] (rhs) → window[0] (lhs) fashion
-                // X = Y means data flows from Y into X → edge: Y → X
+                // assigns: walk the chain in window[1] (rhs) to window[0] (lhs) fashion
+                // X = Y means data flows from Y into X  edge: Y travels to X
                 for window in arg.chain.windows(2) {
                     let (lhs, rhs) = (&window[0], &window[1]);
 

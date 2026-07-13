@@ -32,9 +32,46 @@ impl Resolver {
             .map(|arg| Self::resolve_argument(arg, &call.caller, &call.file, symbol_table))
             .collect();
 
+        // resolve where the callee is actually defined
+        let resolved_callee = Self::resolve_callee(call, symbol_table);
+
         ResolvedCall {
             call: call.clone(),
             arguments,
+            resolved_callee
+        }
+    }
+
+    fn resolve_callee(call: &CallSite, st: &SymbolTable) -> Option<Symbol> {
+        match &call.object {
+            // method call: models.Model()
+            // object = "models" (import alias), callee = "Model"
+            Some(object) => {
+                // get source files for this import alias
+                let source_files = st.import_index.get(&call.file)?.get(object)?;
+
+                // find the callee symbol in those source files
+                source_files.iter().find_map(|source_file| {
+                    st.fn_index
+                        .get(source_file)?
+                        .get(&call.callee)?
+                        .first()
+                        .cloned()
+                })
+            }
+
+            // plain call: Model() — look locally first, then imports
+            None => {
+                // check local fn_index first
+                let local = st
+                    .fn_index
+                    .get(&call.file)?
+                    .get(&call.callee)?
+                    .first()
+                    .cloned();
+
+                local.or_else(|| Self::resolve_import(&call.callee, &call.file, st))
+            }
         }
     }
 
@@ -52,7 +89,7 @@ impl Resolver {
         }
     }
 
-    // ── variables ─────────────────────────────────────────────────────────────
+    // ── variables
 
     // walk every variable and import in the SymbolTable independently of call sites.
     // this captures data flow that never appears as a function argument
@@ -104,8 +141,10 @@ impl Resolver {
             .and_then(|v| v.first())
             .cloned();
 
+        dbg!(&sym);
+
         let Some(s) = sym else {
-            // not found locally — check imports before giving up
+            // not found locally, check imports before giving up
             return Self::resolve_via_import(name, file, symbol_table, depth);
         };
 
@@ -119,7 +158,7 @@ impl Resolver {
             SymbolKind::Variable => {
                 match s.assigned_from {
                     Some(AssignedFrom::Identifier(ref rhs)) => {
-                        // chase: x = y → follow y
+                        // chase: x = y,  follow y
                         let mut rest =
                             Self::resolve_chain(rhs, scope, file, symbol_table, depth + 1);
                         chain.append(&mut rest);
@@ -168,17 +207,18 @@ impl Resolver {
         }
     }
 
-    /// translate import name → real Symbol in source file using import_index.
-    /// O(1) index lookup + O(candidates) verification against SymbolTable.
-    /// No path logic here — parsers stored stems, build_index matched them to real files.
+    // translate import name to a real Symbol in source file using import_index.
+    // O(1) index lookup + O(candidates) verification against SymbolTable.
+    // No path logic here, parsers stored stems, build_index matched them to real files.
     fn resolve_import(name: &str, file: &str, st: &SymbolTable) -> Option<Symbol> {
         let source_files = st.import_index.get(file)?.get(name)?;
 
+        dbg!(name, file);
         // check each candidate — the one that actually declares the symbol wins
         source_files.iter().find_map(|source_file| {
             st.index
                 .get(source_file)?
-                .get(&format!("{}::global", name))
+                .get(name)
                 .and_then(|syms| {
                     syms.iter().find(|s| {
                         // TODO: add tiebreaker here

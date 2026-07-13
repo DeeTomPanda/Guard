@@ -1,7 +1,7 @@
 use crate::server::models::symbols::{SymbolKind, SymbolTable};
 use std::collections::HashMap;
 
-// ── Node ─────────────────────────────────────────────────────────────────────
+// Node 
 
 #[derive(Debug, Clone)]
 pub enum NodeKind {
@@ -31,12 +31,12 @@ pub struct GraphNode {
     pub line: usize,
 }
 
-// ── Edge ─────────────────────────────────────────────────────────────────────
+//  Edge 
 
 #[derive(Debug, Clone)]
 pub enum EdgeKind {
     Calls,           // function to function
-    Assigns,         // rhs to lhs  (data flows from rhs into lhs: Y = X means X→Y)
+    Assigns,         // rhs to lhs  (data flows from rhs into lhs: Y = X means X is passed to Y)
     PassedAs(usize), // variable to callee, as argument at index N
 }
 #[derive(Debug, Clone)]
@@ -54,12 +54,12 @@ pub struct GraphEdge {
     pub site: EdgeSite, // source location in code
 }
 
-// ── Graph ─────────────────────────────────────────────────────────────────────
+//  Graph 
 
 // Unified call + data-flow graph.
 //
-// forward["name::file"] → edges leaving that node  (follow data toward sinks)
-// reverse["name::file"] → edges arriving at that node (trace back to sources)
+// forward["name::file"] edges leaving that node  (follow data toward sinks)
+// reverse["name::file"] edges arriving at that node (trace back to sources)
 pub struct DataFlowGraph {
     pub nodes: HashMap<String, GraphNode>,
     pub forward: HashMap<String, Vec<GraphEdge>>, // traversal from a node outward
@@ -74,7 +74,7 @@ impl DataFlowGraph {
             nodes: HashMap::new(),
         }
     }
-    // ── internal helpers ──────────────────────────────────────────────────────
+    //  internal helpers 
 
     // look up a function in SymbolTable for real kind/line; fall back to synthetic node.
     // callee may be in another file (cross file impl pending)
@@ -136,19 +136,19 @@ impl DataFlowGraph {
             .push(edge);
     }
 
-    // ── query helpers ─────────────────────────────────────────────────────────
+    // query helpers
 
-    /// all edges leaving `key`, follow data flow toward sinks
+    // all edges leaving `key`, follow data flow toward sinks
     pub fn edges_from(&self, key: &str) -> &[GraphEdge] {
         self.forward.get(key).map(|v| v.as_slice()).unwrap_or(&[])
     }
 
-    /// all edges arriving at `key`,` trace back to taint sources
+    // all edges arriving at `key`,` trace back to taint sources
     pub fn edges_to(&self, key: &str) -> &[GraphEdge] {
         self.reverse.get(key).map(|v| v.as_slice()).unwrap_or(&[])
     }
 
-    /// find a node by name + file
+    // find a node by name + file
     pub fn find_node(&self, name: &str, file: &str) -> Option<(&String, &GraphNode)> {
         self.nodes
             .iter()

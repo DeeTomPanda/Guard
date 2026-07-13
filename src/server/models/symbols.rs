@@ -1,5 +1,5 @@
+use crate::server::module_resolver::ImportResolver;
 use std::collections::HashMap;
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum SymbolKind {
     Function,
@@ -109,10 +109,7 @@ impl SymbolTable {
         self.symbols.entry(file).or_default().push(symbol);
     }
 
-    pub fn build_indexes(&mut self) {
-        // collect all parsed file paths upfront for stem matching
-        let all_files: Vec<String> = self.symbols.keys().cloned().collect();
-
+    pub fn build_indexes(&mut self, import_resolver: &ImportResolver) {
         for (file, symbols) in &self.symbols {
             let file_index = self.index.entry(file.clone()).or_default();
 
@@ -125,27 +122,15 @@ impl SymbolTable {
                         .or_default()
                         .push(symbol.clone());
                 } else if matches!(symbol.kind, SymbolKind::Import) {
-                    // local import identifier -> candidate parsed files
-                    //
-                    // JS:
-                    //   db -> [db.ts, db.js]
-                    //
-                    // Go:
-                    //   populated by package resolver instead
-
                     if let Some(AssignedFrom::Import(stem)) = &symbol.assigned_from {
-                        // find all parsed files that match this stem
-                        // e.g. stem="/project/src/db" matches "/project/src/db.ts", "/project/src/db.js"
-                        // for Go: stem="myproject/db" matches nothing until local resolution is added
-                        let matches: Vec<String> = all_files
-                            .iter()
-                            .filter(|f| {
-                                let rest = &f[stem.len().min(f.len())..];
-                                f.starts_with(stem.as_str())
-                                    && (rest.is_empty() || rest.starts_with('.'))
-                            })
-                            .cloned()
-                            .collect();
+                        // local import identifier -> candidate parsed files
+                        //
+                        // JS:
+                        //   db -> [db.ts, db.js]
+                        //
+                        // Go:
+                        //   populated by package resolver instead
+                        let matches = import_resolver.resolve(stem, file);
 
                         if !matches.is_empty() {
                             self.import_index

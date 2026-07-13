@@ -650,7 +650,7 @@ fn get_assigned_from<'a>(
 ) -> Option<AssignedFrom> {
     node_init.map(|expr| match expr {
         // const x = y;
-        // tracks identifier so resolver can chase the chain: x → y → ...
+        // tracks identifier so resolver can chase the chain: x to y to ...
         Expression::Identifier(id) => AssignedFrom::Identifier(id.name.to_string()),
 
         // const x = "hello";
@@ -684,7 +684,7 @@ fn get_assigned_from<'a>(
                 // plain call: foo(...)
                 Expression::Identifier(id) => id.name.to_string(),
 
-                // method call: db.query(...) → "db.query"
+                // method call: db.query(...) to "db.query"
                 // object captured via span to handle chained members e.g. "req.db"
                 Expression::StaticMemberExpression(m) => {
                     format!(

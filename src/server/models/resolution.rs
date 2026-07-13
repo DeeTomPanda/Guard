@@ -10,6 +10,7 @@ pub struct ResolvedArgument {
 pub struct ResolvedCall {
     pub call: CallSite,
     pub arguments: Vec<ResolvedArgument>,
+    pub resolved_callee: Option<Symbol>,
 }
 
 // single step in a variable assignment chain, with the symbol it was assigned from.

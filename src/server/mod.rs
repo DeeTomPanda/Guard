@@ -9,8 +9,9 @@ use tower_http::services::{ServeDir, ServeFile};
 pub mod detectors;
 pub mod handlers;
 pub mod models;
-pub mod service;
+pub mod guard;
 pub mod taint_engine;
+pub mod module_resolver;
 
 pub async fn start_server(state: Arc<RwLock<AppState>>) {
     println!("Starting server on http://127.0.0.1:3000");
