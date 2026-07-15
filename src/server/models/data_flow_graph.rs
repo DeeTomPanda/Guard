@@ -1,7 +1,10 @@
-use crate::server::models::symbols::{SymbolKind, SymbolTable};
+use crate::server::models::{
+    calls::CallSite,
+    symbols::{SymbolKind, SymbolTable},
+};
 use std::collections::HashMap;
 
-// Node 
+// Node
 
 #[derive(Debug, Clone)]
 pub enum NodeKind {
@@ -24,6 +27,7 @@ impl From<&SymbolKind> for NodeKind {
     }
 }
 
+#[derive(Debug)]
 pub struct GraphNode {
     pub name: String,
     pub kind: NodeKind,
@@ -31,7 +35,7 @@ pub struct GraphNode {
     pub line: usize,
 }
 
-//  Edge 
+//  Edge
 
 #[derive(Debug, Clone)]
 pub enum EdgeKind {
@@ -54,12 +58,13 @@ pub struct GraphEdge {
     pub site: EdgeSite, // source location in code
 }
 
-//  Graph 
+//  Graph
 
 // Unified call + data-flow graph.
 //
 // forward["name::file"] edges leaving that node  (follow data toward sinks)
 // reverse["name::file"] edges arriving at that node (trace back to sources)
+#[derive(Debug)]
 pub struct DataFlowGraph {
     pub nodes: HashMap<String, GraphNode>,
     pub forward: HashMap<String, Vec<GraphEdge>>, // traversal from a node outward
@@ -74,11 +79,17 @@ impl DataFlowGraph {
             nodes: HashMap::new(),
         }
     }
-    //  internal helpers 
+    //  internal helpers
 
     // look up a function in SymbolTable for real kind/line; fall back to synthetic node.
     // callee may be in another file (cross file impl pending)
-    pub fn register_function(&mut self, name: &str, file: &str, st: &SymbolTable) -> String {
+    pub fn register_function(
+        &mut self,
+        name: &str,
+        obj: Option<&str>,
+        file: &str,
+        st: &SymbolTable,
+    ) -> String {
         let found = st
             .fn_index
             .get(file)
@@ -86,14 +97,14 @@ impl DataFlowGraph {
             .and_then(|v| v.first());
 
         let found = found.or_else(|| {
-            st.import_index
-                .get(file)
-                .and_then(|imp| imp.get(name))
-                .and_then(|source_files| {
-                    source_files
-                        .iter()
-                        .find_map(|src| st.fn_index.get(src)?.get(name)?.first())
-                })
+            let alias = obj?;
+
+            let source_files = st.import_index.get(file)?.get(alias)?;
+
+            // then iterate over fn index and reoslve symbol
+            source_files
+                .iter()
+                .find_map(|src| st.fn_index.get(src)?.get(name).and_then(|v| v.first()))
         });
 
         let (key, node) = match found {
@@ -156,6 +167,7 @@ impl DataFlowGraph {
     }
 
     pub fn node_key(&self, name: &str, scope: &str, file: &str) -> String {
+        
         format!("{}::{}::{}", name, scope, file)
     }
 }

@@ -4,6 +4,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
+use crate::server::models::resolution::{ResolvedCall, ResolvedVariable};
 use crate::server::taint_engine::data_flow_graph::DataFlowGraphBuilder;
 use crate::AppState;
 use crate::{
@@ -105,8 +106,6 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
     let import_resolver = ImportResolver::new(&canonical_path, &all_files);
     symbol_table.build_indexes(&import_resolver);
 
-    dbg!(&symbol_table.import_index);
-
     // flatten calls into CallTable
     let mut call_table = CallTable::new();
     for calls in all_calls {
@@ -118,47 +117,8 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
     let resolution_table = Resolver::resolve(&symbol_table, &call_table);
     let graph = DataFlowGraphBuilder::build(&resolution_table, &symbol_table);
 
-    // for resolved in &resolution_table.calls {
-    //     println!(
-    //         "{}() caller: {}",
-    //         resolved.call.callee, resolved.call.caller
-    //     );
-    //     for arg in &resolved.arguments {
-    //         println!(
-    //             "  arg: {} → symbol: {:?} → assigned: {:?}",
-    //             arg.raw,
-    //             arg.symbol.as_ref().map(|s| &s.name),
-    //             arg.assigned_from
-    //         );
-    //     }
-    // }
 
-    print!("\n");
-    for (node_id, node) in &graph.nodes {
-
-        let kind =match node.kind{
-            NodeKind::Function=> "function",
-            NodeKind::Import=> "import",
-            NodeKind::Parameter =>"param",
-            NodeKind::Variable => "var"
-        };
-
-        println!("NODE: {} ({})  {}", node_id, node.name, kind);
-
-        if let Some(edges) = graph.forward.get(node_id) {
-            for edge in edges {
-                let rel = match edge.kind {
-                    EdgeKind::Calls => "CALLS",
-                    EdgeKind::PassedAs(usize) => "ARG",
-                    EdgeKind::Assigns=>"ASSIGNMENT"
-                };
-
-                println!("      └── {} → {} ", rel, edge.to);
-            }
-        }
-
-        println!();
-    }
+    // show_graph(&graph);
 
     let scan_id = Uuid::new_v4().to_string();
     let mut state = state.write().await;
@@ -174,4 +134,32 @@ pub async fn scan(path: String, state: Arc<RwLock<AppState>>) -> String {
     state.results.insert(scan_id.clone(), scan_data);
 
     scan_id
+}
+
+fn show_graph(graph: &DataFlowGraph) {
+    print!("\n");
+    for (node_id, node) in &graph.nodes {
+        let kind = match node.kind {
+            NodeKind::Function => "function",
+            NodeKind::Import => "import",
+            NodeKind::Parameter => "param",
+            NodeKind::Variable => "var",
+        };
+
+        println!("NODE: {} ({})  {}", node_id, node.name, kind);
+
+        if let Some(edges) = graph.forward.get(node_id) {
+            for edge in edges {
+                let rel = match edge.kind {
+                    EdgeKind::Calls => "CALLS",
+                    EdgeKind::PassedAs(usize) => "ARG",
+                    EdgeKind::Assigns => "ASSIGNMENT",
+                };
+
+                println!("      └── {} → {} ", rel, edge.to);
+            }
+        }
+
+        println!();
+    }
 }

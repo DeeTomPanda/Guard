@@ -33,45 +33,11 @@ impl Resolver {
             .collect();
 
         // resolve where the callee is actually defined
-        let resolved_callee = Self::resolve_callee(call, symbol_table);
+        // let resolved_callee = Self::resolve_callee(call, symbol_table);
 
         ResolvedCall {
             call: call.clone(),
             arguments,
-            resolved_callee
-        }
-    }
-
-    fn resolve_callee(call: &CallSite, st: &SymbolTable) -> Option<Symbol> {
-        match &call.object {
-            // method call: models.Model()
-            // object = "models" (import alias), callee = "Model"
-            Some(object) => {
-                // get source files for this import alias
-                let source_files = st.import_index.get(&call.file)?.get(object)?;
-
-                // find the callee symbol in those source files
-                source_files.iter().find_map(|source_file| {
-                    st.fn_index
-                        .get(source_file)?
-                        .get(&call.callee)?
-                        .first()
-                        .cloned()
-                })
-            }
-
-            // plain call: Model() — look locally first, then imports
-            None => {
-                // check local fn_index first
-                let local = st
-                    .fn_index
-                    .get(&call.file)?
-                    .get(&call.callee)?
-                    .first()
-                    .cloned();
-
-                local.or_else(|| Self::resolve_import(&call.callee, &call.file, st))
-            }
         }
     }
 
@@ -140,8 +106,6 @@ impl Resolver {
             .and_then(|idx| idx.get(&key))
             .and_then(|v| v.first())
             .cloned();
-
-        dbg!(&sym);
 
         let Some(s) = sym else {
             // not found locally, check imports before giving up
@@ -213,8 +177,7 @@ impl Resolver {
     fn resolve_import(name: &str, file: &str, st: &SymbolTable) -> Option<Symbol> {
         let source_files = st.import_index.get(file)?.get(name)?;
 
-        dbg!(name, file);
-        // check each candidate — the one that actually declares the symbol wins
+        // check each candidate,  the one that actually declares the symbol wins
         source_files.iter().find_map(|source_file| {
             st.index
                 .get(source_file)?

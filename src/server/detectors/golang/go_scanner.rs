@@ -479,6 +479,8 @@ impl<'a> GolangTreeSitter<'a> {
         node: tree_sitter::Node,
         code_bytes: &[u8],
     ) -> Option<AssignedFrom> {
+        // unwrap expression_list containing a single expression
+        let node=self.unwrap_wrapper(node);
         match node.kind() {
             // x := y
             "identifier" => {
@@ -623,5 +625,25 @@ impl<'a> GolangTreeSitter<'a> {
             symbols: self.symbols,
             calls: self.calls,
         }
+    }
+
+    fn unwrap_wrapper(&self, mut node: tree_sitter::Node<'a>) -> tree_sitter::Node<'a>{
+        loop {
+            match node.kind() {
+                "expression_list" | "parenthesized_expression" => {
+                    let mut cursor = node.walk();
+                    let mut children = node.named_children(&mut cursor);
+                    if let Some(child) = children.next() {
+                        node = child;
+                    } else {
+                        break;
+                    }
+                }
+
+                _ => break,
+            }
+        }
+
+        node
     }
 }

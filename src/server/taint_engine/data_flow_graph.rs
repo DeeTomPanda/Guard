@@ -58,9 +58,14 @@ impl DataFlowGraphBuilder {
     ) {
         for resolved in &resolution.calls {
             let call = &resolved.call;
+            let caller_key = graph.register_function(&call.caller, None, &call.file, symbol_table);
+            let callee_key = graph.register_function(
+                &call.callee,
+                call.object.as_deref(),
+                &call.file,
+                symbol_table,
+            );
 
-            let caller_key = graph.register_function(&call.caller, &call.file, symbol_table);
-            let callee_key = graph.register_function(&call.callee, &call.file, symbol_table);
             let edge_site = EdgeSite {
                 file: call.file.clone(),
                 line: call.line,

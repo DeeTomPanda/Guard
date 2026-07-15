@@ -137,8 +137,6 @@ flutter build web --base-href /app/
 
 ## Planned
 
-- [ ] Resolution of Symbol and Calls
-- [ ] Call Graph (cross file referencing)
 - [ ] Taint Analysis
 - [ ] Python support
 - [ ] Java support
@@ -150,3 +148,5 @@ flutter build web --base-href /app/
 - [x] Go support
 - [x] SARIF output format (GitHub Code Scanning compatible)
 - [x] SymbolTable and CallTable extraction
+- [x] Resolution of Symbol and Calls
+- [x] Call Graph (cross file referencing)

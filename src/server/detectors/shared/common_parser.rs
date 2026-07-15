@@ -109,7 +109,7 @@ impl<'a> CodeVisitor<'a> {
                 .parent()
                 .unwrap_or_else(|| std::path::Path::new("."));
 
-            // just normalize to absolute stem — no extension probing
+            // just normalize to absolute stem, no extension probing
             Some(
                 base_dir
                     .join(import_path)
@@ -118,7 +118,7 @@ impl<'a> CodeVisitor<'a> {
                     .to_string(),
             )
         } else {
-            Some(import_path.to_string()) // node_modules — leave as-is
+            Some(import_path.to_string()) // node_modules, leave as-is
         }
     }
 

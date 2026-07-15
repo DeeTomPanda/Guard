@@ -4,6 +4,7 @@ use std::collections::HashMap;
 pub struct JSTSResolver {
     project_root: String,
     all_files: Box<[String]>,
+    resolver:JSTSModResolver
 }
 
 pub struct JSTSModResolver {
@@ -18,6 +19,7 @@ impl JSTSResolver {
         Self {
             project_root,
             all_files: all_files.to_vec().into_boxed_slice(),
+            resolver:JSTSModResolver::new(all_files)
         }
     }
 }
@@ -36,7 +38,7 @@ impl JSTSModResolver {
         Self { stem_index }
     }
     fn resolve(&self,stem:&str) ->Vec<String>{
-        // O(1) — just a HashMap lookup
+        // O(1), just a HashMap lookup
         self.stem_index.get(stem).cloned().unwrap_or_default()
     }
 }
@@ -50,8 +52,6 @@ impl LanguageResolver for JSTSResolver {
     }
 
     fn resolve(&self, stem: &str) -> Vec<String> {
-        // create the new resolver first, then
-        let resolver=JSTSModResolver::new(&self.all_files);
-        resolver.resolve(stem)
+        self.resolver.resolve(stem)
     }
 }
